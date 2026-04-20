@@ -6,3 +6,8 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def dashboard():
     # In a real app, verify user session here before rendering
     return render_template('dashboard.html')
+
+@dashboard_bp.route('/top-talkers')
+def top_talkers():
+    # In a real app, verify user session here before rendering
+    return render_template('top_talkers.html')

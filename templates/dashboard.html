@@ -15,17 +15,29 @@
 </head>
 
 <body class="dashboard-body">
+
     <nav class="navbar">
         <div class="nav-brand">
             <img src="{{ url_for('static', filename='img/DNSRaspiManagementLogo512x512.png') }}" alt="Logo"
                 class="nav-logo">
             <h2>DNS RasPi Management</h2>
         </div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard.dashboard') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+                Dashboard
+            </a>
+            <a href="{{ url_for('dashboard.top_talkers') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">
+                Top Talkers & Domains
+            </a>
+        </div>
+
         <div class="nav-actions">
             <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
         </div>
     </nav>
-
     <main class="dashboard-container">
 
         <div class="section-title">

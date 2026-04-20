@@ -10,7 +10,7 @@ class SystemHealthService:
 
     def _fetch_bind_version(self):
         try:
-            result = subprocess.run(['named', '-v'], capture_output=True, text=True, timeout=2)
+            result = subprocess.run(['/usr/sbin/named', '-v'], capture_output=True, text=True, timeout=2)
             if result.returncode == 0:
                 return result.stdout.strip()
         except Exception:
@@ -44,7 +44,7 @@ class SystemHealthService:
         # BIND Status
         bind_status = "offline"
         try:
-            result = subprocess.run(['systemctl', 'is-active', 'named'], capture_output=True, text=True, timeout=2)
+            result = subprocess.run(['/usr/bin/systemctl', 'is-active', 'named'], capture_output=True, text=True, timeout=2)
             if result.stdout.strip() == "active":
                 bind_status = "active"
         except Exception:

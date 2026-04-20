@@ -14,7 +14,7 @@ def register_auth_routes(authenticate_use_case: AuthenticateUserUseCase):
             if user:
                 # In a real app, you'd set a session here.
                 flash('Login successful!', 'success')
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('dashboard.dashboard'))
             else:
                 flash('Invalid username or password.', 'error')
                 

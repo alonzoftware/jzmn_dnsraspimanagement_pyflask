@@ -25,14 +25,15 @@ if not user_repo.get_by_username('admin'):
 
 auth_use_case = AuthenticateUserUseCase(user_repo)
 
-# Register Blueprints
 auth_bp = register_auth_routes(auth_use_case)
-app.register_blueprint(auth_bp)
 
-@app.route('/dashboard')
-def dashboard():
-    # If not logged in, typically we'd redirect to login.
-    return '<h1>DNS RaspberryPI Management Dashboard</h1><p>Welcome to the admin panel.</p><p><a href="/">Back to Login</a></p>'
+# Register Blueprints
+from src.presentation.api_routes import api_bp
+from src.presentation.dashboard_routes import dashboard_bp
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(api_bp)
+app.register_blueprint(dashboard_bp)
 
 if __name__ == '__main__':
     app.run(debug=True)

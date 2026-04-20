@@ -10,5 +10,12 @@ source venv/bin/activate
 . venv/bin/activate (deactivate to stop)
 
 # Install Flask and Gunicorn in Virtual Environment Mode
-pip install flask gunicorn
+flask
+flask-cors          # If your dashboard frontend is on a different port/domain
+dnspython           # DNS toolkit for queries and zone manipulation
+psutil              # For CPU, RAM, and Network monitoring
+gunicorn            # Recommended for running Flask in production on your Pi
 
+
+pip install flask gunicorn flask-cors dnspython psutil
+venv/bin/pip install psutil dnspython flask-cors

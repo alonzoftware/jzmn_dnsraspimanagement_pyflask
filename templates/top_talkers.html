@@ -13,7 +13,6 @@
 </head>
 
 <body class="dashboard-body">
-
     <nav class="navbar">
         <div class="nav-brand">
             <img src="{{ url_for('static', filename='img/DNSRaspiManagementLogo512x512.png') }}" alt="Logo"
@@ -22,14 +21,8 @@
         </div>
 
         <div class="nav-links">
-            <a href="{{ url_for('dashboard.dashboard') }}"
-                class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
-                Dashboard
-            </a>
-            <a href="{{ url_for('dashboard.top_talkers') }}"
-                class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">
-                Top Talkers & Domains
-            </a>
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link active">Top Talkers & Domains</a>
         </div>
 
         <div class="nav-actions">
@@ -40,21 +33,103 @@
     <main class="dashboard-container">
         <div class="section-title">
             <h3>Top Talkers & Domains</h3>
+            <div class="header-actions">
+                <div class="dashboard-controls">
+                    <select id="dataSourceSelect" class="control-select">
+                        <option value="real" selected>Real BIND Data</option>
+                        <option value="simulated">Simulated Data</option>
+                    </select>
+                    <button id="btnRefresh" class="btn-control">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Refresh Data</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="chart-card wide"
-            style="min-height: 400px; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 16px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                style="color: var(--text-secondary); opacity: 0.5;">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <p style="color: var(--text-secondary);">Module pending implementation...</p>
+        <div id="errorMessage" class="flash error" style="display: none; margin-bottom: 20px;"></div>
+
+        <div class="metrics-grid" style="margin-bottom: 24px;">
+            <div class="metric-card" style="background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+                <div class="metric-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                </div>
+                <div class="metric-info">
+                    <p style="color: #ef4444;">Total RPZ Blocked Queries</p>
+                    <h4 id="valTotalBlocked" style="color: #fca5a5;">--</h4>
+                </div>
+            </div>
         </div>
+
+        <div class="charts-grid">
+            <!-- Top Clients -->
+            <div class="chart-card">
+                <h4>Top Clients (IPs)</h4>
+                <div class="table-container">
+                    <table class="data-table" id="clientsTable">
+                        <thead>
+                            <tr>
+                                <th>Client IP</th>
+                                <th style="text-align: right;">Requests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Domains -->
+            <div class="chart-card">
+                <h4>Top Requested Domains</h4>
+                <div class="table-container">
+                    <table class="data-table" id="domainsTable">
+                        <thead>
+                            <tr>
+                                <th>Domain</th>
+                                <th style="text-align: right;">Hits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocked RPZ Queries -->
+        <div class="chart-card wide" style="margin-top: 24px;">
+            <h4>Recent RPZ Blocks (Response Policy Zone)</h4>
+            <div class="table-container">
+                <table class="data-table" id="rpzTable">
+                    <thead>
+                        <tr>
+                            <th>Blocked Domain</th>
+                            <th>Requesting Client</th>
+                            <th style="text-align: right;">Block Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
+    <script src="{{ url_for('static', filename='js/top_talkers.js') }}"></script>
 </body>
 
 </html>

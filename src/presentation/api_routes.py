@@ -16,3 +16,9 @@ def get_dns_stats():
     source = request.args.get('source', 'simulated')
     metrics = dns_service.get_dns_metrics(source)
     return jsonify(metrics)
+
+@api_bp.route('/top-talkers')
+def get_top_talkers():
+    source = request.args.get('source', 'simulated')
+    metrics = dns_service.get_top_talkers(source)
+    return jsonify(metrics)

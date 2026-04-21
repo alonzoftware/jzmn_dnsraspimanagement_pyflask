@@ -321,8 +321,7 @@
 
 .data-table {
     width: 100%;
-    min-width: 550px;
-    /* Forces table to scroll instead of crushing columns */
+    min-width: 100%;
     border-collapse: collapse;
     text-align: left;
 }
@@ -407,7 +406,8 @@
         display: block;
     }
 
-    .nav-links, .nav-actions {
+    .nav-links,
+    .nav-actions {
         display: none;
         width: 100%;
         flex-direction: column;

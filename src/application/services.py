@@ -9,6 +9,10 @@ import ping3
 import requests
 import dns.resolver
 
+_current_path = os.environ.get('PATH', '')
+if '/usr/bin' not in _current_path:
+    os.environ['PATH'] = f"{_current_path}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin".strip(':')
+
 class SystemHealthService:
     def __init__(self):
         # We cache the bind version so we don't call subprocess constantly

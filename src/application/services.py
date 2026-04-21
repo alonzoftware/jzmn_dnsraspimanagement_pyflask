@@ -425,3 +425,137 @@ class InternetCheckService:
             "public_identity": self.check_public_identity(),
             "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
         }
+class DnsCacheService:
+    def __init__(self):
+        self.stats_url = 'http://127.0.0.1:8053/json'
+        self.dump_file = '/var/cache/bind/named_dump.db'
+
+    def get_cache_stats(self):
+        try:
+            import urllib.request
+            import json
+            req = urllib.request.Request(self.stats_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=2) as response:
+                data = json.loads(response.read().decode())
+            
+            views = data.get('views', {})
+            first_view = next(iter(views.values())) if views else {}
+            cachestats = first_view.get('resolver', {}).get('cachestats', {})
+            
+            hits = cachestats.get('QueryHits', 0)
+            misses = cachestats.get('QueryMisses', 0)
+            total = hits + misses
+            hit_ratio = round((hits / total * 100), 2) if total > 0 else 0.0
+
+            tree_mem_bytes = cachestats.get('TreeMemInUse', 0)
+            heap_mem_bytes = cachestats.get('HeapMemInUse', 0)
+            total_mem_mb = round((tree_mem_bytes + heap_mem_bytes) / (1024 * 1024), 2)
+
+            saved_latency = hits * 40
+
+            return {
+                "hits": hits,
+                "misses": misses,
+                "hit_ratio": hit_ratio,
+                "total_mem_mb": total_mem_mb,
+                "saved_latency_ms": saved_latency,
+                "status": "OK"
+            }
+        except Exception as e:
+            return {
+                "status": "Failed",
+                "error": str(e),
+                "hits": 0, "misses": 0, "hit_ratio": 0.0, "total_mem_mb": 0.0, "saved_latency_ms": 0
+            }
+
+    def get_cache_entries(self, search_query=None):
+        try:
+            subprocess.run(['sudo', '-n', '/usr/sbin/rndc', 'dumpdb', '-cache'], capture_output=True, text=True, timeout=5)
+            
+            entries = []
+            if os.path.exists(self.dump_file):
+                with open(self.dump_file, 'r') as f:
+                    for line in f:
+                        if line.startswith(';') or line.startswith('$') or not line.strip():
+                            continue
+                        
+                        parts = line.split()
+                        if len(parts) >= 3:
+                            domain = parts[0]
+                            if domain.endswith('.') and len(domain) > 1:
+                                domain = domain[:-1]
+                            elif domain == '.':
+                                domain = 'ROOT'
+                            
+                            ttl = 0
+                            record_type = "UNKNOWN"
+                            
+                            if parts[1].isdigit():
+                                ttl = int(parts[1])
+                                if len(parts) >= 4 and parts[2] == 'IN':
+                                    record_type = parts[3]
+                                elif len(parts) >= 3:
+                                    record_type = parts[2]
+                            else:
+                                # Sometimes TTL might be missing or different
+                                record_type = parts[1]
+                                
+                            entries.append({
+                                "domain": domain,
+                                "ttl": ttl,
+                                "type": record_type
+                            })
+            
+            domain_counter = Counter(e['domain'] for e in entries)
+            top_domains = [{"domain": d, "count": c} for d, c in domain_counter.most_common(10)]
+            
+            filtered_entries = []
+            if search_query:
+                search_lower = search_query.lower()
+                filtered_entries = [e for e in entries if search_lower in e['domain'].lower()][:50]
+                
+            expiring_soon = sum(1 for e in entries if e['ttl'] < 300)
+            long_lifetime = sum(1 for e in entries if e['ttl'] >= 300)
+            
+            tld_counter = Counter(e['domain'].split('.')[-1] for e in entries if '.' in e['domain'])
+            top_tlds = [{"tld": t, "count": c} for t, c in tld_counter.most_common(5)]
+            
+            type_counter = Counter(e['type'] for e in entries)
+            record_types = [{"type": t, "count": c} for t, c in type_counter.most_common(5)]
+            
+            return {
+                "status": "OK",
+                "total_entries": len(entries),
+                "top_domains": top_domains,
+                "search_results": filtered_entries,
+                "ttl_overview": {
+                    "expiring_soon": expiring_soon,
+                    "long_lifetime": long_lifetime
+                },
+                "summary": {
+                    "top_tlds": top_tlds,
+                    "record_types": record_types
+                }
+            }
+        except Exception as e:
+            return {"status": "Failed", "error": str(e), "total_entries": 0, "top_domains": [], "search_results": [], "ttl_overview": {"expiring_soon": 0, "long_lifetime": 0}}
+
+    def flush_cache(self):
+        try:
+            res = subprocess.run(['sudo', '-n', '/usr/sbin/rndc', 'flush'], capture_output=True, text=True, timeout=5)
+            if res.returncode == 0:
+                return {"status": "OK", "message": "Cache flushed successfully."}
+            else:
+                return {"status": "Failed", "message": res.stderr.strip() or res.stdout.strip()}
+        except Exception as e:
+            return {"status": "Failed", "message": str(e)}
+
+    def flush_domain(self, domain):
+        try:
+            res = subprocess.run(['sudo', '-n', '/usr/sbin/rndc', 'flushname', domain], capture_output=True, text=True, timeout=5)
+            if res.returncode == 0:
+                return {"status": "OK", "message": f"Flushed {domain} successfully."}
+            else:
+                return {"status": "Failed", "message": res.stderr.strip() or res.stdout.strip()}
+        except Exception as e:
+            return {"status": "Failed", "message": str(e)}

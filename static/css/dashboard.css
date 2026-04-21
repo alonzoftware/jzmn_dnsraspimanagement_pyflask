@@ -232,6 +232,7 @@
     border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 20px;
+    min-width: 0;
 }
 
 .chart-card h4 {
@@ -315,6 +316,7 @@
     -webkit-overflow-scrolling: touch;
     /* Smooth horizontal scrolling on mobile */
     width: 100%;
+    min-width: 0;
 }
 
 .data-table {
@@ -429,6 +431,10 @@
 
     .nav-link {
         text-align: center;
+    }
+
+    .dashboard-container {
+        padding: 16px;
     }
 
     .charts-grid {

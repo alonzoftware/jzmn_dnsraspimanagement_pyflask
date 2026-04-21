@@ -386,17 +386,49 @@
     color: #fca5a5;
 }
 
+.burger-menu {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+}
+
 /* Mobile & Tablet Responsiveness */
 @media (max-width: 900px) {
     .navbar {
+        flex-wrap: wrap;
+    }
+
+    .burger-menu {
+        display: block;
+    }
+
+    .nav-links, .nav-actions {
+        display: none;
+        width: 100%;
         flex-direction: column;
-        gap: 20px;
+        align-items: stretch;
     }
 
     .nav-links {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
+        margin-top: 16px;
+        gap: 8px;
+    }
+
+    .nav-actions {
+        margin-top: 16px;
+        text-align: center;
+    }
+
+    .navbar.nav-open .nav-links,
+    .navbar.nav-open .nav-actions {
+        display: flex;
+    }
+
+    .nav-link {
+        text-align: center;
     }
 
     .charts-grid {

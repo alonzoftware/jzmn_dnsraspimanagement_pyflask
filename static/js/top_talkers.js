@@ -48,16 +48,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             });
 
-            // Update RPZ Table
+            // Update RPZ Table with Action Badges
             const rpzTbody = document.querySelector('#rpzTable tbody');
             rpzTbody.innerHTML = '';
             (data.rpz_blocks || []).forEach(rpz => {
+
+                // Color code based on if it was Dropped (Blocked) or sent to a specific IP (Redirected)
+                const actionBadge = rpz.action === 'Redirected'
+                    ? '<span class="badge badge-blue">Redirected (A)</span>'
+                    : '<span class="badge badge-red">Blocked (CNAME)</span>';
+
                 rpzTbody.innerHTML += `
                     <tr>
-                        <td class="text-danger">${rpz.domain}</td>
+                        <td class="truncate text-danger" title="${rpz.domain}">${rpz.domain}</td>
                         <td class="code-font">${rpz.client}</td>
+                        <td>${actionBadge}</td>
                         <td style="text-align: right;">
-                            <span class="badge badge-red">${rpz.count.toLocaleString()}</span>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0;">${rpz.count.toLocaleString()}</span>
                         </td>
                     </tr>
                 `;

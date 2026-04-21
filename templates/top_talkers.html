@@ -22,7 +22,7 @@
 
         <div class="nav-links">
             <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Dashboard</a>
-            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link active">Top Talkers & Domains</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link active">Top Clients & Domains</a>
         </div>
 
         <div class="nav-actions">
@@ -32,7 +32,7 @@
 
     <main class="dashboard-container">
         <div class="section-title">
-            <h3>Top Talkers & Domains</h3>
+            <h3>Top Clients & Domains</h3>
             <div class="header-actions">
                 <div class="dashboard-controls">
                     <select id="dataSourceSelect" class="control-select">
@@ -64,7 +64,7 @@
                     </svg>
                 </div>
                 <div class="metric-info">
-                    <p style="color: #ef4444;">Total RPZ Blocked Queries</p>
+                    <p style="color: #ef4444;">Total RPZ Actions Triggered</p>
                     <h4 id="valTotalBlocked" style="color: #fca5a5;">--</h4>
                 </div>
             </div>
@@ -110,14 +110,15 @@
 
         <!-- Blocked RPZ Queries -->
         <div class="chart-card wide" style="margin-top: 24px;">
-            <h4>Recent RPZ Blocks (Response Policy Zone)</h4>
+            <h4>Recent RPZ Activity (Response Policy Zone)</h4>
             <div class="table-container">
                 <table class="data-table" id="rpzTable">
                     <thead>
                         <tr>
-                            <th>Blocked Domain</th>
-                            <th>Requesting Client</th>
-                            <th style="text-align: right;">Block Count</th>
+                            <th>Requested Domain</th>
+                            <th>Client IP</th>
+                            <th>Action Taken</th>
+                            <th style="text-align: right;">Event Count</th>
                         </tr>
                     </thead>
                     <tbody>

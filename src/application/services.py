@@ -4,6 +4,7 @@ import time
 import random
 import os
 import re
+from collections import Counter
 
 class SystemHealthService:
     def __init__(self):
@@ -12,7 +13,7 @@ class SystemHealthService:
 
     def _fetch_bind_version(self):
         try:
-            # Use full path for OS Lite
+            # Use sudo and full path for OS Lite
             result = subprocess.run(['/usr/sbin/named', '-v'], capture_output=True, text=True, timeout=2)
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -46,13 +47,14 @@ class SystemHealthService:
 
         # BIND Status
         bind_status = "offline"
-        try:
-            # Use sudo and full path for OS Lite
-            result = subprocess.run(['/usr/bin/systemctl', 'is-active', 'named'], capture_output=True, text=True, timeout=2)
-            if result.stdout.strip() == "active":
-                bind_status = "active"
-        except Exception:
-            pass
+        for svc in ['bind9', 'named']:
+            try:
+                result = subprocess.run(['/usr/bin/systemctl', 'is-active', svc], capture_output=True, text=True, timeout=2)
+                if result.stdout.strip() == "active":
+                    bind_status = "active"
+                    break
+            except Exception:
+                pass
 
         return {
             "cpu_percent": cpu_percent,
@@ -130,11 +132,14 @@ class DnsMetricsService:
 
         # Simulated Logic
         is_active = False
-        try:
-            res = subprocess.run(['/usr/bin/systemctl', 'is-active', 'named'], capture_output=True, text=True, timeout=2)
-            is_active = (res.stdout.strip() == "active")
-        except:
-            pass
+        for svc in ['bind9', 'named']:
+            try:
+                res = subprocess.run(['/usr/bin/systemctl', 'is-active', svc], capture_output=True, text=True, timeout=2)
+                if res.stdout.strip() == "active":
+                    is_active = True
+                    break
+            except:
+                pass
 
         if not is_active:
             self.current_qps = 0
@@ -162,29 +167,22 @@ class DnsMetricsService:
     def get_top_talkers(self, source='simulated'):
         """
         Retrieves Top Clients, Domains, and RPZ Blocks.
-        In real mode, this would require parsing the BIND querylog or using dnstap.
         """
         if source == 'real':
-            # Note: To enable real data, you must configure query logging in BIND:
-            # logging { channel query_log { file "/var/log/bind/queries.log"; }; category queries { query_log; }; };
             log_path = '/var/log/bind/queries.log'
             if os.path.exists(log_path):
-                import re
-                from collections import Counter
-                
                 clients_counter = Counter()
                 domains_counter = Counter()
                 rpz_counter = Counter()
                 
                 try:
                     with open(log_path, 'r') as f:
-                        # Read the last 10,000 lines to keep it fast and lightweight
                         lines = f.readlines()[-10000:]
                         
-                        # Regex patterns for parsing BIND 9 logs
                         client_regex = re.compile(r"client\s+(?:@[^\s]+\s+)?([a-fA-F0-9\.\:]+)#")
                         query_regex = re.compile(r"query:\s+([^\s]+)\s+")
-                        rpz_regex = re.compile(r"rpz:.*?client\s+(?:@[^\s]+\s+)?([a-fA-F0-9\.\:]+)#.*?\(([^)]+)\)")
+                        # Capture group 3 grabs the rest of the line to inspect the RPZ rewrite action
+                        rpz_regex = re.compile(r"rpz:.*?client\s+(?:@[^\s]+\s+)?([a-fA-F0-9\.\:]+)#.*?\(([^)]+)\)(.*)")
                         
                         for line in lines:
                             if "query:" in line:
@@ -198,15 +196,25 @@ class DnsMetricsService:
                                 if rpz_match:
                                     client_ip = rpz_match.group(1)
                                     domain = rpz_match.group(2)
-                                    rpz_counter[f"{domain}|{client_ip}"] += 1
+                                    rest_of_line = rpz_match.group(3)
+                                    
+                                    # BIND logs custom IP injections (A records) as "Local-Data"
+                                    # Drops (CNAME .) are typically logged as NXDOMAIN or NODATA
+                                    action = "Blocked"
+                                    if "Local-Data" in rest_of_line:
+                                        action = "Redirected"
+                                        
+                                    rpz_counter[f"{domain}|{client_ip}|{action}"] += 1
 
                     top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(5)]
                     top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(5)]
                     
                     rpz_blocks = []
-                    for key, count in rpz_counter.most_common(5):
-                        domain, ip = key.split('|')
-                        rpz_blocks.append({"domain": domain, "client": ip, "count": count})
+                    for key, count in rpz_counter.most_common(10): # Fetch top 10 RPZ hits
+                        parts = key.split('|')
+                        if len(parts) == 3:
+                            domain, ip, action = parts
+                            rpz_blocks.append({"domain": domain, "client": ip, "action": action, "count": count})
                         
                     total_blocked = sum(rpz_counter.values())
 
@@ -227,7 +235,7 @@ class DnsMetricsService:
                     "top_clients": [], "top_domains": [], "rpz_blocks": [], "total_blocked": 0
                 }
 
-        # Simulated Data generation based on allowed networks and RPZ
+        # Simulated Data generation based on allowed networks and RPZ actions
         subnets = ['192.168.0', '192.168.85']
         
         clients = [
@@ -246,18 +254,28 @@ class DnsMetricsService:
         ]
         domains.sort(key=lambda x: x['count'], reverse=True)
 
-        # RPZ Block simulation based on your zone config
-        rpz_domains = ["www.lacnic.net", "gestiontickets.net", "tracking.gestiontickets.net"]
-        rpz = [
-            {"domain": random.choice(rpz_domains), "client": f"{random.choice(subnets)}.{random.randint(2, 20)}", "count": random.randint(5, 50)}
-            for _ in range(5)
+        rpz_domains = [
+            {"domain": "www.lacnic.net", "action": "Blocked"}, 
+            {"domain": "gestiontickets.net", "action": "Redirected"}, 
+            {"domain": "tracking.gestiontickets.net", "action": "Redirected"}
         ]
+        
+        rpz = []
+        for _ in range(5):
+            choice = random.choice(rpz_domains)
+            rpz.append({
+                "domain": choice["domain"], 
+                "client": f"{random.choice(subnets)}.{random.randint(2, 20)}", 
+                "action": choice["action"],
+                "count": random.randint(5, 50)
+            })
+            
         rpz.sort(key=lambda x: x['count'], reverse=True)
         total_blocked = sum(item['count'] for item in rpz) + random.randint(100, 500)
 
         return {
             "top_clients": clients[:5],
             "top_domains": domains[:5],
-            "rpz_blocks": rpz[:5],
+            "rpz_blocks": rpz[:10],
             "total_blocked": total_blocked
         }

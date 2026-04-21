@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const source = document.getElementById('dataSourceSelect').value;
-            const res = await fetch(`/api/top-talkers?source=${source}`);
+            const limit = document.getElementById('limitSelect').value;
+            const res = await fetch(`/api/top-talkers?source=${source}&limit=${limit}`);
             const data = await res.json();
 
             const errorMsg = document.getElementById('errorMessage');
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listeners
     document.getElementById('btnRefresh').addEventListener('click', fetchTopTalkers);
     document.getElementById('dataSourceSelect').addEventListener('change', fetchTopTalkers);
+    document.getElementById('limitSelect').addEventListener('change', fetchTopTalkers);
 });
 
 // Add a quick keyframe for the spinning refresh icon

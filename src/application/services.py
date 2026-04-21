@@ -164,7 +164,7 @@ class DnsMetricsService:
             "latency_ms": random.randint(15, 85)
         }
 
-    def get_top_talkers(self, source='simulated'):
+    def get_top_talkers(self, source='simulated', limit=10):
         """
         Retrieves Top Clients, Domains, and RPZ Blocks.
         """
@@ -206,11 +206,11 @@ class DnsMetricsService:
                                         
                                     rpz_counter[f"{domain}|{client_ip}|{action}"] += 1
 
-                    top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(25)]
-                    top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(25)]
+                    top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(limit)]
+                    top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(limit)]
                     
                     rpz_blocks = []
-                    for key, count in rpz_counter.most_common(25): # Fetch top 10 RPZ hits
+                    for key, count in rpz_counter.most_common(limit): # Fetch top RPZ hits up to limit
                         parts = key.split('|')
                         if len(parts) == 3:
                             domain, ip, action = parts
@@ -274,8 +274,8 @@ class DnsMetricsService:
         total_blocked = sum(item['count'] for item in rpz) + random.randint(100, 500)
 
         return {
-            "top_clients": clients[:5],
-            "top_domains": domains[:5],
-            "rpz_blocks": rpz[:10],
+            "top_clients": clients[:limit],
+            "top_domains": domains[:limit],
+            "rpz_blocks": rpz[:limit],
             "total_blocked": total_blocked
         }

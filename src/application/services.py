@@ -174,6 +174,7 @@ class DnsMetricsService:
                 clients_counter = Counter()
                 domains_counter = Counter()
                 rpz_counter = Counter()
+                domain_client_actions = {}
                 
                 try:
                     with open(log_path, 'r') as f:
@@ -198,13 +199,17 @@ class DnsMetricsService:
                                     domain = rpz_match.group(2)
                                     rest_of_line = rpz_match.group(3)
                                     
+                                    key = f"{domain}|{client_ip}"
+                                    rpz_counter[key] += 1
+                                    
                                     # BIND logs custom IP injections (A records) as "Local-Data"
-                                    # Drops (CNAME .) are typically logged as NXDOMAIN or NODATA
-                                    action = "Blocked"
-                                    if "Local-Data" in rest_of_line:
-                                        action = "Redirected"
+                                    # Drops (CNAME .) are typically logged as NXDOMAIN
+                                    # Queries for types without custom records (e.g., HTTPS when only A is defined) log as NODATA
+                                    if key not in domain_client_actions:
+                                        domain_client_actions[key] = "Blocked"
                                         
-                                    rpz_counter[f"{domain}|{client_ip}|{action}"] += 1
+                                    if "Local-Data" in rest_of_line or "NODATA" in rest_of_line:
+                                        domain_client_actions[key] = "Redirected"
 
                     top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(limit)]
                     top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(limit)]
@@ -212,8 +217,9 @@ class DnsMetricsService:
                     rpz_blocks = []
                     for key, count in rpz_counter.most_common(limit): # Fetch top RPZ hits up to limit
                         parts = key.split('|')
-                        if len(parts) == 3:
-                            domain, ip, action = parts
+                        if len(parts) == 2:
+                            domain, ip = parts
+                            action = domain_client_actions.get(key, "Blocked")
                             rpz_blocks.append({"domain": domain, "client": ip, "action": action, "count": count})
                         
                     total_blocked = sum(rpz_counter.values())

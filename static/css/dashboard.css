@@ -298,6 +298,17 @@
     background: rgba(239, 68, 68, 0.3);
 }
 
+/* Stat Stack — sits alongside Query Types in the charts-grid */
+.stat-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-stack-item {
+    flex: 1;
+}
+
 /* Tables Styling */
 .table-container {
     overflow-x: auto;

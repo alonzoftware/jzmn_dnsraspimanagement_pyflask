@@ -15,3 +15,7 @@ def top_talkers():
 @dashboard_bp.route('/check-internet')
 def check_internet():
     return render_template('check_internet.html')
+
+@dashboard_bp.route('/dns-cache')
+def dns_cache():
+    return render_template('dns_cache.html')

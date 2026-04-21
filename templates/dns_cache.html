@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS RasPi Management - DNS Cache</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body class="dashboard-body">
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="{{ url_for('static', filename='img/DNSRaspiManagementLogo512x512.png') }}" alt="Logo"
+                class="nav-logo">
+            <h2>DNS RasPi Management</h2>
+        </div>
+
+        <button class="burger-menu" aria-label="Toggle menu" onclick="this.parentElement.classList.toggle('nav-open')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link">Top Clients & Domains</a>
+            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link">Check Internet</a>
+            <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link active">DNS Cache</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+    <main class="dashboard-container">
+        <div class="section-title">
+            <h3>DNS Cache</h3>
+        </div>
+        <p>This page is currently empty.</p>
+    </main>
+</body>
+</html>

@@ -44,6 +44,10 @@
                 class="nav-link {% if request.endpoint == 'dashboard.check_internet' %}active{% endif %}">
                 Check Internet
             </a>
+            <a href="{{ url_for('dashboard.dns_cache') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.dns_cache' %}active{% endif %}">
+                DNS Cache
+            </a>
         </div>
 
         <div class="nav-actions">

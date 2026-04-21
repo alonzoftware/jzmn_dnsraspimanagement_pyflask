@@ -32,6 +32,10 @@
                 class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">
                 Top Clients & Domains
             </a>
+            <a href="{{ url_for('dashboard.check_internet') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.check_internet' %}active{% endif %}">
+                Check Internet
+            </a>
         </div>
 
         <div class="nav-actions">

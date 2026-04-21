@@ -11,3 +11,7 @@ def dashboard():
 def top_talkers():
     # In a real app, verify user session here before rendering
     return render_template('top_talkers.html')
+
+@dashboard_bp.route('/check-internet')
+def check_internet():
+    return render_template('check_internet.html')

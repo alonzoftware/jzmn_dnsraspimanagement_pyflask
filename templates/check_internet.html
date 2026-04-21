@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS RasPi Management - Check Internet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body class="dashboard-body">
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="{{ url_for('static', filename='img/DNSRaspiManagementLogo512x512.png') }}" alt="Logo"
+                class="nav-logo">
+            <h2>DNS RasPi Management</h2>
+        </div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link">Top Clients & Domains</a>
+            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link active">Check Internet</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <div class="section-title">
+            <h3>Check Internet</h3>
+        </div>
+        
+        <div class="info-panel">
+            <span>Internet connectivity check functionality will be implemented here.</span>
+        </div>
+    </main>
+
+</body>
+
+</html>

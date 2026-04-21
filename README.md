@@ -15,7 +15,7 @@ flask-cors          # If your dashboard frontend is on a different port/domain
 dnspython           # DNS toolkit for queries and zone manipulation
 psutil              # For CPU, RAM, and Network monitoring
 gunicorn            # Recommended for running Flask in production on your Pi
+ping3               # For network latency and pings
 
-
-pip install flask gunicorn flask-cors dnspython psutil
-venv/bin/pip install psutil dnspython flask-cors
+pip install flask gunicorn flask-cors dnspython psutil ping3
+venv/bin/pip install psutil dnspython flask-cors ping3

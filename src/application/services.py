@@ -206,11 +206,11 @@ class DnsMetricsService:
                                         
                                     rpz_counter[f"{domain}|{client_ip}|{action}"] += 1
 
-                    top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(5)]
-                    top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(5)]
+                    top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(25)]
+                    top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(25)]
                     
                     rpz_blocks = []
-                    for key, count in rpz_counter.most_common(10): # Fetch top 10 RPZ hits
+                    for key, count in rpz_counter.most_common(25): # Fetch top 10 RPZ hits
                         parts = key.split('|')
                         if len(parts) == 3:
                             domain, ip, action = parts

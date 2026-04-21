@@ -23,3 +23,10 @@ def get_top_talkers():
     limit = int(request.args.get('limit', 10))
     metrics = dns_service.get_top_talkers(source, limit)
     return jsonify(metrics)
+
+@api_bp.route('/internet-status')
+def get_internet_status():
+    from src.application.services import InternetCheckService
+    internet_service = InternetCheckService()
+    status = internet_service.run_all_checks()
+    return jsonify(status)

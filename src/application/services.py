@@ -5,6 +5,9 @@ import random
 import os
 import re
 from collections import Counter
+import ping3
+import requests
+import dns.resolver
 
 class SystemHealthService:
     def __init__(self):
@@ -284,4 +287,141 @@ class DnsMetricsService:
             "top_domains": domains[:limit],
             "rpz_blocks": rpz[:limit],
             "total_blocked": total_blocked
+        }
+
+class InternetCheckService:
+    def __init__(self):
+        pass
+
+    def _get_default_gateway(self):
+        try:
+            # works on most linux
+            result = subprocess.run(['ip', 'route', 'show', 'default'], capture_output=True, text=True, timeout=2)
+            if result.returncode == 0 and result.stdout:
+                parts = result.stdout.strip().split()
+                if 'via' in parts:
+                    idx = parts.index('via')
+                    return parts[idx+1]
+        except Exception:
+            pass
+        return None
+
+    def _ping_target(self, target, count=3):
+        import subprocess
+        import re
+        try:
+            # Using system ping because ping3 requires root privileges for raw sockets on Linux
+            result = subprocess.run(['ping', '-c', str(count), '-W', '2', target], capture_output=True, text=True)
+            output = result.stdout
+            
+            if "packet loss" in output:
+                loss_match = re.search(r'(\d+)% packet loss', output)
+                packet_loss = float(loss_match.group(1)) if loss_match else 100.0
+                
+                rtt_match = re.search(r'min/avg/max/mdev = [\d\.]+/(.+?)/[\d\.]+/', output)
+                avg_latency = float(rtt_match.group(1)) if rtt_match else 0.0
+                
+                return {
+                    "latency_ms": round(avg_latency, 2),
+                    "packet_loss_percent": round(packet_loss, 2),
+                    "is_reachable": packet_loss < 100.0
+                }
+            else:
+                return {
+                    "latency_ms": 0.0,
+                    "packet_loss_percent": 100.0,
+                    "is_reachable": False
+                }
+        except Exception:
+            return {
+                "latency_ms": 0.0,
+                "packet_loss_percent": 100.0,
+                "is_reachable": False
+            }
+
+    def check_gateway_connectivity(self):
+        gateway_ip = self._get_default_gateway()
+        res = {
+            "gateway_ip": gateway_ip or "Unknown",
+            "reachable": False,
+            "latency_ms": 0,
+            "packet_loss_percent": 100.0,
+            "global_ping": {}
+        }
+        
+        if gateway_ip:
+            gw_ping = self._ping_target(gateway_ip, count=3)
+            res["reachable"] = gw_ping["is_reachable"]
+            res["latency_ms"] = gw_ping["latency_ms"]
+            res["packet_loss_percent"] = gw_ping["packet_loss_percent"]
+
+        res["global_ping"]["8.8.8.8"] = self._ping_target("8.8.8.8", count=3)
+        res["global_ping"]["1.1.1.1"] = self._ping_target("1.1.1.1", count=3)
+        return res
+
+    def check_dns_connectivity(self):
+        resolvers_to_test = ["8.8.8.8", "1.1.1.1"]
+        resolver_responses = {}
+        for res_ip in resolvers_to_test:
+            try:
+                res = dns.resolver.Resolver(configure=False)
+                res.nameservers = [res_ip]
+                res.lifetime = 2.0
+                start = time.time()
+                res.resolve('google.com', 'A')
+                elapsed = (time.time() - start) * 1000
+                resolver_responses[res_ip] = {"latency_ms": round(elapsed, 2), "status": "OK"}
+            except Exception as e:
+                resolver_responses[res_ip] = {"latency_ms": 0, "status": "Failed"}
+
+        # Root hints reachability
+        root_servers = ["198.41.0.4", "199.9.14.201"] # a.root-servers.net, b.root-servers.net
+        root_reachability = {}
+        for root_ip in root_servers:
+            ping_res = self._ping_target(root_ip, count=1)
+            root_reachability[root_ip] = "Reachable" if ping_res["is_reachable"] else "Unreachable"
+
+        # Resolution test via system default (BIND)
+        sys_res_time = 0
+        sys_res_status = "Failed"
+        try:
+            start = time.time()
+            dns.resolver.resolve('google.com', 'A', lifetime=2.0)
+            sys_res_time = (time.time() - start) * 1000
+            sys_res_status = "OK"
+        except Exception:
+            pass
+
+        return {
+            "upstream_resolvers": resolver_responses,
+            "root_servers": root_reachability,
+            "resolution_test": {
+                "domain": "google.com",
+                "latency_ms": round(sys_res_time, 2),
+                "status": sys_res_status
+            }
+        }
+
+    def check_public_identity(self):
+        try:
+            resp = requests.get('http://ip-api.com/json/?fields=status,message,country,city,isp,org,as,query', timeout=3)
+            data = resp.json()
+            if data.get('status') == 'success':
+                return {
+                    "ip": data.get('query', 'Unknown'),
+                    "isp": data.get('isp', 'Unknown'),
+                    "asn": data.get('as', 'Unknown'),
+                    "location": f"{data.get('city', 'Unknown')}, {data.get('country', 'Unknown')}",
+                    "status": "OK"
+                }
+            return {"status": "Failed", "error": data.get('message', 'Unknown error')}
+        except Exception as e:
+            return {"status": "Failed", "error": str(e)}
+
+    def run_all_checks(self):
+        return {
+            "gateway_global": self.check_gateway_connectivity(),
+            "dns_connectivity": self.check_dns_connectivity(),
+            "public_identity": self.check_public_identity(),
+            "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
         }

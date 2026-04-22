@@ -60,13 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     countOrActionHeader.textContent = 'Action';
                     
                     if (data.search_results.length === 0) {
-                        cacheTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No matching domains found in cache.</td></tr>`;
+                        cacheTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No matching domains found in cache.</td></tr>`;
                     } else {
                         data.search_results.forEach(entry => {
                             const tr = document.createElement('tr');
+                            // Truncate long values so they don't break the table UI
+                            const displayValue = entry.value && entry.value.length > 50 ? entry.value.substring(0, 47) + '...' : (entry.value || '-');
                             tr.innerHTML = `
                                 <td>${entry.domain}</td>
                                 <td>${entry.type}</td>
+                                <td style="word-break: break-all;">${displayValue}</td>
                                 <td style="text-align: right;">${entry.ttl}</td>
                                 <td style="text-align: right;">
                                     <button class="btn-control" style="padding: 4px 8px; font-size: 0.8rem; border-color: #ef4444; color: #ef4444;" onclick="flushSpecificDomain('${entry.domain}')">Flush</button>
@@ -80,13 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     countOrActionHeader.textContent = 'Instances';
                     
                     if (data.top_domains.length === 0) {
-                        cacheTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Cache is empty.</td></tr>`;
+                        cacheTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Cache is empty.</td></tr>`;
                     } else {
                         data.top_domains.forEach(item => {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
                                 <td>${item.domain}</td>
                                 <td>Multiple</td>
+                                <td>-</td>
                                 <td style="text-align: right;">-</td>
                                 <td style="text-align: right; color: var(--primary-color); font-weight: 600;">${item.count}</td>
                             `;

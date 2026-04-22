@@ -493,21 +493,26 @@ class DnsCacheService:
                             
                             ttl = 0
                             record_type = "UNKNOWN"
+                            record_value = ""
                             
                             if parts[1].isdigit():
                                 ttl = int(parts[1])
                                 if len(parts) >= 4 and parts[2] == 'IN':
                                     record_type = parts[3]
+                                    record_value = " ".join(parts[4:])
                                 elif len(parts) >= 3:
                                     record_type = parts[2]
+                                    record_value = " ".join(parts[3:])
                             else:
                                 # Sometimes TTL might be missing or different
                                 record_type = parts[1]
+                                record_value = " ".join(parts[2:])
                                 
                             entries.append({
                                 "domain": domain,
                                 "ttl": ttl,
-                                "type": record_type
+                                "type": record_type,
+                                "value": record_value
                             })
             
             domain_counter = Counter(e['domain'] for e in entries)

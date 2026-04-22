@@ -183,6 +183,17 @@ class DnsMetricsService:
                 rpz_counter = Counter()
                 domain_client_actions = {}
                 
+                # Fetch exact rules to map domains to their actual configured actions
+                exact_actions = {}
+                try:
+                    rpz_svc = ResponsePolicyService()
+                    rules_res = rpz_svc.get_rules()
+                    if rules_res.get("status") == "OK":
+                        for r in rules_res.get("rules", []):
+                            exact_actions[r["domain"]] = r["action"]
+                except Exception:
+                    pass
+                
                 try:
                     with open(log_path, 'r') as f:
                         lines = f.readlines()[-10000:]
@@ -209,14 +220,32 @@ class DnsMetricsService:
                                     key = f"{domain}|{client_ip}"
                                     rpz_counter[key] += 1
                                     
-                                    # BIND logs custom IP injections (A records) as "Local-Data"
-                                    # Drops (CNAME .) are typically logged as NXDOMAIN
-                                    # Queries for types without custom records (e.g., HTTPS when only A is defined) log as NODATA
-                                    if key not in domain_client_actions:
-                                        domain_client_actions[key] = "Blocked"
-                                        
-                                    if "Local-Data" in rest_of_line or "NODATA" in rest_of_line:
-                                        domain_client_actions[key] = "Redirected"
+                                    if domain in exact_actions:
+                                        exact = exact_actions[domain]
+                                        if exact == "A":
+                                            domain_client_actions[key] = "Redirected (A)"
+                                        elif exact == "AAAA":
+                                            domain_client_actions[key] = "Redirected (AAAA)"
+                                        elif exact == "CNAME":
+                                            domain_client_actions[key] = "Redirected (CNAME)"
+                                        elif exact == "NODATA":
+                                            domain_client_actions[key] = "NODATA"
+                                        elif exact == "PASSTHRU":
+                                            domain_client_actions[key] = "PASSTHRU"
+                                        elif exact == "DROP":
+                                            domain_client_actions[key] = "Blocked (DROP)"
+                                        else:
+                                            domain_client_actions[key] = "Blocked (NXDOMAIN)"
+                                    else:
+                                        if key not in domain_client_actions:
+                                            domain_client_actions[key] = "Blocked (NXDOMAIN)"
+                                            
+                                        if "Local-Data" in rest_of_line:
+                                            domain_client_actions[key] = "Redirected (A)"
+                                        elif "NODATA" in rest_of_line:
+                                            domain_client_actions[key] = "NODATA"
+                                        elif "PASSTHRU" in rest_of_line:
+                                            domain_client_actions[key] = "PASSTHRU"
 
                     top_clients = [{"ip": ip, "count": count} for ip, count in clients_counter.most_common(limit)]
                     top_domains = [{"domain": dom, "count": count} for dom, count in domains_counter.most_common(limit)]
@@ -268,9 +297,12 @@ class DnsMetricsService:
         domains.sort(key=lambda x: x['count'], reverse=True)
 
         rpz_domains = [
-            {"domain": "www.lacnic.net", "action": "Blocked"}, 
-            {"domain": "gestiontickets.net", "action": "Redirected"}, 
-            {"domain": "tracking.gestiontickets.net", "action": "Redirected"}
+            {"domain": "www.lacnic.net", "action": "Blocked (NXDOMAIN)"}, 
+            {"domain": "gestiontickets.net", "action": "Redirected (A)"}, 
+            {"domain": "tracking.gestiontickets.net", "action": "Redirected (CNAME)"},
+            {"domain": "ipv6.lacnic.net", "action": "Redirected (AAAA)"},
+            {"domain": "nodata.lacnic.net", "action": "NODATA"},
+            {"domain": "blog.lacnic.net", "action": "PASSTHRU"}
         ]
         
         rpz = []

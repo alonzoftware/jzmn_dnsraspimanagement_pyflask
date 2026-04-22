@@ -412,6 +412,11 @@
     color: #fca5a5;
 }
 
+.badge-green {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+
 .burger-menu {
     display: none;
     background: none;

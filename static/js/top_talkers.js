@@ -54,10 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
             rpzTbody.innerHTML = '';
             (data.rpz_blocks || []).forEach(rpz => {
 
-                // Color code based on if it was Dropped (Blocked) or sent to a specific IP (Redirected)
-                const actionBadge = rpz.action === 'Redirected'
-                    ? '<span class="badge badge-blue">Redirected (A)</span>'
-                    : '<span class="badge badge-red">Blocked (CNAME)</span>';
+                // Color code based on if it was Dropped (Blocked), sent to a specific IP (Redirected), or returned NODATA
+                let actionBadge;
+                if (rpz.action.startsWith('Redirected')) {
+                    actionBadge = `<span class="badge badge-blue">${rpz.action}</span>`;
+                } else if (rpz.action === 'NODATA') {
+                    actionBadge = `<span class="badge badge-purple">NODATA</span>`;
+                } else if (rpz.action === 'PASSTHRU') {
+                    actionBadge = `<span class="badge badge-green">PASSTHRU</span>`;
+                } else {
+                    actionBadge = `<span class="badge badge-red">${rpz.action}</span>`;
+                }
 
                 rpzTbody.innerHTML += `
                     <tr>

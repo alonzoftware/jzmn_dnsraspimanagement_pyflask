@@ -44,11 +44,71 @@
     </nav>
     <main class="dashboard-container">
         <div class="section-title">
-            <h3>Compare Performance</h3>
+            <h3>DNS Resolver Race</h3>
+            <div class="header-actions">
+                <button id="btnRunBenchmark" class="btn-control" style="background-color: var(--primary); color: white; border: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Start Race</span>
+                </button>
+            </div>
         </div>
-        <div class="info-panel">
-            <span>Empty at the moment</span>
+
+        <div class="info-panel" style="margin-bottom: 24px;">
+            <p>Comparing your local Raspberry Pi BIND server against external resolvers, including typical Bolivian ISPs.</p>
         </div>
+
+        <!-- The Race Chart -->
+        <div class="chart-card wide" style="margin-bottom: 24px; position: relative;">
+            <h4 style="display: flex; align-items: center; justify-content: space-between;">
+                <span>Speed Comparison (Cold vs Cached)</span>
+                <span id="winnerBadge" style="display: none; align-items: center; color: #fbbf24; font-weight: bold;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="margin-right: 8px;">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                    <span id="winnerText">Pi Wins!</span>
+                </span>
+            </h4>
+            <div class="chart-container" style="height: 400px; width: 100%;">
+                <canvas id="raceChart"></canvas>
+            </div>
+            <p id="benchmarkInfo" style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-top: 12px;"></p>
+        </div>
+
+        <!-- Metrics Table -->
+        <div class="chart-card wide" style="margin-bottom: 24px;">
+            <h4>Detailed Metrics</h4>
+            <div class="table-container">
+                <table class="data-table" id="metricsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%">Resolver</th>
+                            <th style="width: 25%; text-align: right;">Cold Start (ms)</th>
+                            <th style="width: 25%; text-align: right;">Cached Response (ms)</th>
+                            <th style="width: 25%; text-align: right;">Success Rate (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Run the benchmark to see results</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Domain List Editor -->
+        <div class="chart-card wide">
+            <h4>Benchmark Domain List (50 Domains)</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">The benchmark randomly selects 5 domains from this list each time to test resolvers.</p>
+            <textarea id="domainsEditor" style="width: 100%; height: 200px; font-family: monospace; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-dark); color: var(--text-light); resize: vertical;"></textarea>
+            <div style="text-align: right; margin-top: 12px;">
+                <button id="btnSaveDomains" class="btn-control">Save Domains</button>
+            </div>
+        </div>
+        
     </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/compare_performance.js') }}"></script>
 </body>
 </html>

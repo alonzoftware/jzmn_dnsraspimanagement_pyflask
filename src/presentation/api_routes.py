@@ -74,3 +74,19 @@ def import_rpz_feed():
     if not url:
         return jsonify({"status": "Error", "message": "No URL provided."}), 400
     return jsonify(rpz_service.fetch_external_feed(url))
+
+from src.application.services import ComparePerformanceService
+compare_service = ComparePerformanceService()
+
+@api_bp.route('/compare-performance/domains', methods=['GET', 'POST'])
+def handle_compare_domains():
+    if request.method == 'GET':
+        return jsonify({"domains": compare_service.get_domains()})
+    elif request.method == 'POST':
+        data = request.get_json() or {}
+        domains = data.get('domains', [])
+        return jsonify(compare_service.save_domains(domains))
+
+@api_bp.route('/compare-performance/benchmark', methods=['GET'])
+def benchmark_resolvers():
+    return jsonify(compare_service.benchmark())

@@ -837,3 +837,115 @@ class ResponsePolicyService:
             return {"status": "OK", "domains": domains}
         except Exception as e:
             return {"status": "Error", "message": str(e)}
+
+class ComparePerformanceService:
+    def __init__(self, domains_file='domains.txt'):
+        self.domains_file = domains_file
+        self.resolvers = {
+            "Local Pi": "127.0.0.1",
+            "Cloudflare": "1.1.1.1",
+            "Google": "8.8.8.8",
+            "Entel": "200.87.100.10",
+            "AXS Bolivia": "200.105.128.40",
+            "Tigo": "200.73.96.146"
+        }
+
+    def get_domains(self):
+        if not os.path.exists(self.domains_file):
+            default_domains = [
+                "google.com", "youtube.com", "facebook.com", "baidu.com", "wikipedia.org",
+                "yahoo.com", "twitter.com", "pornhub.com", "instagram.com", "xvideos.com",
+                "xhamster.com", "amazon.com", "yandex.ru", "xnxx.com", "live.com",
+                "netflix.com", "tiktok.com", "yahoo.co.jp", "bing.com", "reddit.com",
+                "dzen.ru", "linkedin.com", "vk.com", "chatgpt.com", "office.com",
+                "samsung.com", "bilibili.com", "naver.com", "mail.ru", "weather.com",
+                "twitch.tv", "microsoft.com", "zoom.us", "quora.com", "pinterest.com",
+                "ebay.com", "apple.com", "duckduckgo.com", "fandom.com", "roblox.com",
+                "msn.com", "globo.com", "imdb.com", "ok.ru", "whatsapp.com",
+                "aliexpress.com", "bbc.com", "cnn.com", "paypal.com", "nytimes.com"
+            ]
+            self.save_domains(default_domains)
+            return default_domains
+        
+        with open(self.domains_file, 'r') as f:
+            return [line.strip() for line in f if line.strip()]
+
+    def save_domains(self, domains_list):
+        with open(self.domains_file, 'w') as f:
+            for d in domains_list:
+                f.write(f"{d}\n")
+        return {"status": "OK"}
+
+    def benchmark(self):
+        domains = self.get_domains()
+        if len(domains) > 5:
+            test_domains = random.sample(domains, 5)
+        else:
+            test_domains = domains
+
+        try:
+            subprocess.run(['sudo', '-n', '/usr/sbin/rndc', 'flush'], capture_output=True)
+        except:
+            pass
+
+        results = []
+        for name, ip in self.resolvers.items():
+            resolver = dns.resolver.Resolver(configure=False)
+            resolver.nameservers = [ip]
+            resolver.lifetime = 2.0
+
+            # Quick reachability test
+            reachable = True
+            if ip != "127.0.0.1":
+                try:
+                    resolver.resolve('example.com', 'A')
+                except Exception:
+                    # Retry once to be sure it's not a transient SERVFAIL
+                    try:
+                        resolver.resolve('google.com', 'A')
+                    except Exception:
+                        reachable = False
+
+            if not reachable:
+                results.append({
+                    "resolver_name": name,
+                    "ip": ip,
+                    "cold_ms": 0,
+                    "cached_ms": 0,
+                    "success_rate": 0
+                })
+                continue
+            
+            cold_times = []
+            success_count = 0
+            for d in test_domains:
+                start = time.time()
+                try:
+                    resolver.resolve(d, 'A')
+                    cold_times.append((time.time() - start) * 1000)
+                    success_count += 1
+                except:
+                    pass
+                    
+            cached_times = []
+            for d in test_domains:
+                start = time.time()
+                try:
+                    resolver.resolve(d, 'A')
+                    cached_times.append((time.time() - start) * 1000)
+                except:
+                    pass
+                    
+            cold_ms = sum(cold_times) / len(cold_times) if cold_times else 0
+            cached_ms = sum(cached_times) / len(cached_times) if cached_times else 0
+            success_rate = (success_count / len(test_domains)) * 100 if test_domains else 0
+            
+            results.append({
+                "resolver_name": name,
+                "ip": ip,
+                "cold_ms": round(cold_ms, 2),
+                "cached_ms": round(cached_ms, 2),
+                "success_rate": round(success_rate, 2)
+            })
+
+        return {"results": results, "test_domains": test_domains}

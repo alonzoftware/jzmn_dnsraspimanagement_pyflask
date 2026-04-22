@@ -7,6 +7,26 @@
     background-color: var(--bg-color);
 }
 
+/* Custom Scrollbar Styles for the entire dashboard */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -346,6 +366,11 @@
 
 .data-table tr:last-child td {
     border-bottom: none;
+}
+
+.data-table th:last-child,
+.data-table td:last-child {
+    padding-right: 32px;
 }
 
 .code-font {

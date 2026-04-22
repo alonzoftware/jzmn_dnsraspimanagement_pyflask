@@ -10,17 +10,96 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            flex: 0 0 auto !important;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex-gap {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg, #1e293b);
+            color: var(--text-color, #f8fafc);
+            margin: 10% auto;
+            padding: 24px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color, #334155);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        textarea.control-input {
+            width: 100%;
+            height: 150px;
+            font-family: monospace;
+            resize: vertical;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .control-input {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 
 <body class="dashboard-body">
-
     <nav class="navbar">
         <div class="nav-brand">
             <img src="{{ url_for('static', filename='img/DNSRaspiManagementLogo512x512.png') }}" alt="Logo"
                 class="nav-logo">
             <h2>DNS RasPi Management</h2>
         </div>
-
         <button class="burger-menu" aria-label="Toggle menu" onclick="this.parentElement.classList.toggle('nav-open')">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -29,7 +108,6 @@
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
-
         <div class="nav-links">
             <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Monitoring Panel</a>
             <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link">Top Clients & Domains</a>
@@ -37,20 +115,122 @@
             <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link">DNS Cache</a>
             <a href="{{ url_for('dashboard.response_policy') }}" class="nav-link active">Response Policy</a>
         </div>
-
         <div class="nav-actions">
             <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
         </div>
     </nav>
+
     <main class="dashboard-container">
         <div class="section-title">
-            <h3>Response Policy</h3>
+            <h3>Response Policy Zone (RPZ) Management</h3>
+            <div class="header-actions">
+                <button id="btnReload" class="btn-control">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    <span>Reload Service (rndc)</span>
+                </button>
+                <button id="btnSaveRules" class="btn-control"
+                    style="background-color: var(--primary); color: white; border: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span>Save Rules to File</span>
+                </button>
+            </div>
         </div>
-        
-        <div class="info-panel" style="margin-top: 24px;">
-            <span>This page is currently empty and under construction.</span>
+
+        <div id="flashMessage" class="flash" style="display: none; margin-bottom: 20px;"></div>
+
+        <div class="charts-grid" style="margin-bottom: 24px;">
+            <div class="chart-card">
+                <div class="flex-between" style="margin-bottom: 16px;">
+                    <h4>Bulk Operations & Import</h4>
+                </div>
+                <div class="flex-gap" style="margin-bottom: 16px;">
+                    <button id="btnOpenTextImport" class="btn-control" style="flex: 1;">Paste Text / Domains</button>
+                </div>
+                <div class="flex-gap">
+                    <input type="text" id="inputFeedUrl" class="control-input"
+                        placeholder="Feed URL (e.g., StevenBlack hosts)" style="flex: 2;">
+                    <button id="btnImportFeed" class="btn-control" style="flex: 1;">Sync Feed</button>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h4>Safety & Service</h4>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">
+                    - Domain names are automatically normalized to remove trailing dots.<br><br>
+                    - You can insert a Domain relative to the configured zone (Example: domain.com or *.domain.com) or
+                    write complete domain.com.rpz.localhost.<br><br>
+                    - Named-checkzone validation is run before saving.<br><br>
+                    - The SOA serial is automatically incremented.<br><br>
+                    - A .bak file is kept in the same directory.<br><br>
+                    - Remember to <strong>Reload Service</strong> after saving!
+                </p>
+                <div class="info-panel" style="margin-top: 12px; padding: 12px;">
+                    <span id="valRuleCount" style="font-weight: bold; font-size: 1.1rem;">0</span> total rules in editor
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-card wide" style="margin-top: 24px;">
+            <div class="flex-between">
+                <h4>RPZ Rule Manager</h4>
+                <button id="btnAddRuleRow" class="btn-control btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Rule
+                </button>
+            </div>
+            <div class="table-container" style="margin-top: 16px;">
+                <table class="data-table" id="rulesTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%">Domain (Trigger)</th>
+                            <th style="width: 20%">Action Type</th>
+                            <th style="width: 25%">Target (for CNAME/A)</th>
+                            <th style="width: 20%">Comments/Reason</th>
+                            <th style="width: 10%; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="info-panel">
+            <span>Developed by: Jazmin Alejandra Coromi Cruz</span>
         </div>
     </main>
+
+    <!-- Text Import Modal -->
+    <div id="modalTextImport" class="modal">
+        <div class="modal-content">
+            <span class="close" id="btnCloseTextImport">&times;</span>
+            <h3 style="margin-bottom: 16px;">Bulk Import Domains</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+                Paste a list of domains (one per line). They will be added as NXDOMAIN.
+            </p>
+            <textarea id="inputTextImport" class="control-input"
+                placeholder="example.com&#10;malware-site.net"></textarea>
+            <div style="text-align: right;">
+                <button id="btnProcessTextImport" class="btn-control"
+                    style="background-color: var(--primary); color: white; border: none;">Import Domains</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/response_policy.js') }}"></script>
 </body>
 
 </html>

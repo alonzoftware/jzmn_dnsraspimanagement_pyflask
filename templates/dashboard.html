@@ -22,7 +22,6 @@
                 class="nav-logo">
             <h2>DNS RasPi Management</h2>
         </div>
-
         <button class="burger-menu" aria-label="Toggle menu" onclick="this.parentElement.classList.toggle('nav-open')">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -60,7 +59,6 @@
         </div>
     </nav>
     <main class="dashboard-container">
-
         <div class="section-title">
             <h3>System Health</h3>
             <div class="header-actions">
@@ -226,7 +224,9 @@
                 </div>
             </div>
         </div>
-
+        <div class="info-panel">
+            <span>Developed by: Jazmin Alejandra Coromi Cruz</span>
+        </div>
     </main>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>

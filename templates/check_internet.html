@@ -92,7 +92,9 @@
                 </button>
             </div>
         </div>
-
+        <div class="info-panel" style="margin-top: 24px;">
+            <span id="valLastUpdated">Last check: Never</span>
+        </div>
         <!-- 1. Gateway & Global Connectivity Status -->
         <h4 style="margin: 24px 0 16px; color: var(--text-dark);">1. Gateway & Global Connectivity Status</h4>
         <div class="metrics-grid">
@@ -255,10 +257,10 @@
             </div>
         </div>
 
-        <div class="info-panel" style="margin-top: 24px;">
-            <span id="valLastUpdated">Last check: Never</span>
-        </div>
 
+        <div class="info-panel">
+            <span>Developed by: Jazmin Alejandra Coromi Cruz</span>
+        </div>
     </main>
 
     <script src="{{ url_for('static', filename='js/check_internet.js') }}"></script>

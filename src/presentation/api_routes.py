@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request
-from src.application.services import SystemHealthService, DnsMetricsService, DnsCacheService
+from src.application.services import SystemHealthService, DnsMetricsService, DnsCacheService, ResponsePolicyService
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 health_service = SystemHealthService()
 dns_service = DnsMetricsService()
 dns_cache_service = DnsCacheService()
+rpz_service = ResponsePolicyService()
 
 @api_bp.route('/health')
 def get_health():
@@ -52,3 +53,24 @@ def flush_dns_domain():
     if not domain:
         return jsonify({"status": "Failed", "message": "No domain provided."}), 400
     return jsonify(dns_cache_service.flush_domain(domain))
+
+@api_bp.route('/rpz/rules', methods=['GET', 'POST'])
+def handle_rpz_rules():
+    if request.method == 'GET':
+        return jsonify(rpz_service.get_rules())
+    elif request.method == 'POST':
+        data = request.get_json() or {}
+        rules = data.get('rules', [])
+        return jsonify(rpz_service.save_rules(rules))
+
+@api_bp.route('/rpz/reload', methods=['POST'])
+def reload_rpz_zone():
+    return jsonify(rpz_service.reload_zone())
+
+@api_bp.route('/rpz/import', methods=['POST'])
+def import_rpz_feed():
+    data = request.get_json() or {}
+    url = data.get('url', '')
+    if not url:
+        return jsonify({"status": "Error", "message": "No URL provided."}), 400
+    return jsonify(rpz_service.fetch_external_feed(url))

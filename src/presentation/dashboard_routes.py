@@ -19,3 +19,7 @@ def check_internet():
 @dashboard_bp.route('/dns-cache')
 def dns_cache():
     return render_template('dns_cache.html')
+
+@dashboard_bp.route('/response-policy')
+def response_policy():
+    return render_template('response_policy.html')

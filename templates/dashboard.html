@@ -49,6 +49,10 @@
                 class="nav-link {% if request.endpoint == 'dashboard.dns_cache' %}active{% endif %}">
                 DNS Cache
             </a>
+            <a href="{{ url_for('dashboard.response_policy') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">
+                Response Policy
+            </a>
         </div>
 
         <div class="nav-actions">

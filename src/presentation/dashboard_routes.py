@@ -23,3 +23,7 @@ def dns_cache():
 @dashboard_bp.route('/response-policy')
 def response_policy():
     return render_template('response_policy.html')
+
+@dashboard_bp.route('/compare-performance')
+def compare_performance():
+    return render_template('compare_performance.html')

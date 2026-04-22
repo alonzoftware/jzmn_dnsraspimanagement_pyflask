@@ -52,6 +52,10 @@
                 class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">
                 Response Policy
             </a>
+            <a href="{{ url_for('dashboard.compare_performance') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">
+                Compare Performance
+            </a>
         </div>
 
         <div class="nav-actions">

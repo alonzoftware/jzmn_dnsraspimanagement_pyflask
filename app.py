@@ -20,13 +20,13 @@ if not user_repo.get_by_username('admin'):
         username='admin',
         password_hash='admin', # Note: In a real application, this should be hashed
         is_active=True,
-        role='admin'
+        role='sadmin'
     )
     user_repo.add_user(admin_user)
 else:
     admin_user = user_repo.get_by_username('admin')
-    if admin_user.role != 'admin':
-        admin_user.role = 'admin'
+    if admin_user.role != 'sadmin':
+        admin_user.role = 'sadmin'
         user_repo.update_user(admin_user)
 
 if not user_repo.get_by_username('user1'):

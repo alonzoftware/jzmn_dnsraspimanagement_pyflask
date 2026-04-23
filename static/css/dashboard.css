@@ -90,6 +90,32 @@
     border: 1px solid rgba(139, 92, 246, 0.2);
 }
 
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: right;
+    line-height: 1.2;
+}
+
+.user-info-name {
+    font-weight: 500;
+    color: white;
+}
+
+.user-info-role {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #a78bfa;
+    margin-top: 2px;
+}
+
 .btn-logout {
     padding: 8px 16px;
     border-radius: 8px;
@@ -451,7 +477,13 @@
 
     .nav-actions {
         margin-top: 16px;
-        text-align: center;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .user-info {
+        text-align: left;
     }
 
     .navbar.nav-open .nav-links,

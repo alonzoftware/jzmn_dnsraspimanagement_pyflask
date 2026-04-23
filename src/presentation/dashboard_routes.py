@@ -10,7 +10,7 @@ def admin_required(f):
     from functools import wraps
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get('role') != 'admin':
+        if session.get('role') not in ('admin', 'sadmin'):
             return redirect(url_for('dashboard.dashboard'))
         return f(*args, **kwargs)
     return decorated_function
@@ -29,13 +29,13 @@ def check_internet():
 
 @dashboard_bp.route('/dns-cache')
 def dns_cache():
-    if session.get('role') != 'admin':
+    if session.get('role') not in ('admin', 'sadmin'):
         return redirect(url_for('dashboard.dashboard'))
     return render_template('dns_cache.html')
 
 @dashboard_bp.route('/response-policy')
 def response_policy():
-    if session.get('role') != 'admin':
+    if session.get('role') not in ('admin', 'sadmin'):
         return redirect(url_for('dashboard.dashboard'))
     return render_template('response_policy.html')
 
@@ -56,6 +56,9 @@ def add_user():
     if user_repo.get_by_username(data['username']):
         return jsonify({'error': 'User already exists'}), 400
         
+    if data.get('role') == 'sadmin' and session.get('role') != 'sadmin':
+        return jsonify({'error': 'Only Super Admins can assign the SAdmin role'}), 403
+        
     new_user = User(
         id=str(uuid.uuid4()),
         username=data['username'],
@@ -74,12 +77,20 @@ def edit_user(username):
     if not user:
         return jsonify({'error': 'User not found'}), 404
         
+    if user.role == 'sadmin' and session.get('role') != 'sadmin':
+        return jsonify({'error': 'Only Super Admins can modify Super Admin accounts'}), 403
+        
+    if user.role == 'admin' and session.get('role') == 'admin' and user.username != session.get('username'):
+        return jsonify({'error': 'Admins cannot modify other Admin accounts'}), 403
+        
     if 'username' in data and data['username'] != username:
         if user_repo.get_by_username(data['username']):
             return jsonify({'error': 'Username already exists'}), 400
         user.username = data['username']
         
     if 'role' in data:
+        if data['role'] == 'sadmin' and session.get('role') != 'sadmin':
+            return jsonify({'error': 'Only Super Admins can assign the SAdmin role'}), 403
         user.role = data['role']
     if 'password' in data and data['password']:
         user.password_hash = data['password']
@@ -92,5 +103,12 @@ def edit_user(username):
 def delete_user(username):
     if username == 'admin':
         return jsonify({'error': 'Cannot delete default admin'}), 400
+    user = user_repo.get_by_username(username)
+    if user:
+        if user.role == 'sadmin' and session.get('role') != 'sadmin':
+            return jsonify({'error': 'Only Super Admins can delete Super Admin accounts'}), 403
+        if user.role == 'admin' and session.get('role') == 'admin' and user.username != session.get('username'):
+            return jsonify({'error': 'Admins cannot delete other Admin accounts'}), 403
+            
     user_repo.delete_user(username)
     return jsonify({'success': True})

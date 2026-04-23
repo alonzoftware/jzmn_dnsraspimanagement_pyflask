@@ -27,3 +27,7 @@ def response_policy():
 @dashboard_bp.route('/compare-performance')
 def compare_performance():
     return render_template('compare_performance.html')
+
+@dashboard_bp.route('/system-users')
+def system_users():
+    return render_template('system_users.html')

@@ -56,6 +56,10 @@
                 class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">
                 Compare Performance
             </a>
+            <a href="{{ url_for('dashboard.system_users') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.system_users' %}active{% endif %}">
+                System Users
+            </a>
         </div>
 
         <div class="nav-actions">

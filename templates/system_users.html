@@ -96,6 +96,10 @@
                     {% else %}User{% endif %}
                 </div>
             </div>
+            <button class="btn-change-password" id="btnChangePassword" onclick="openChangePasswordModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                Change Password
+            </button>
             <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
         </div>
     </nav>
@@ -221,5 +225,76 @@
         window.CURRENT_ROLE = "{{ session.get('role') }}";
     </script>
     <script src="{{ url_for('static', filename='js/system_users.js') }}"></script>
+
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal-box">
+            <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+                <h3 style="display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Change Password
+                </h3>
+                <button class="modal-close" onclick="closeChangePasswordModal()" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-alert" id="cpwAlert"></div>
+            <div class="modal-form-group">
+                <label for="cpwCurrent">Current Password</label>
+                <div class="modal-input-wrap">
+                    <input type="password" id="cpwCurrent" placeholder="Enter current password">
+                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwCurrent', this)" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
+            </div>
+            <div class="modal-form-group">
+                <label for="cpwNew">New Password</label>
+                <div class="modal-input-wrap">
+                    <input type="password" id="cpwNew" placeholder="Min. 6 characters">
+                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwNew', this)" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
+            </div>
+            <div class="modal-form-group">
+                <label for="cpwConfirm">Confirm New Password</label>
+                <div class="modal-input-wrap">
+                    <input type="password" id="cpwConfirm" placeholder="Repeat new password">
+                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwConfirm', this)" aria-label="Toggle visibility"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+                <button class="btn-modal-submit" id="cpwSubmit" onclick="submitChangePassword()">Update Password</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.add('open');
+            ['cpwCurrent','cpwNew','cpwConfirm'].forEach(id => document.getElementById(id).value = '');
+            const al = document.getElementById('cpwAlert'); al.className = 'modal-alert'; al.textContent = '';
+            document.getElementById('cpwSubmit').disabled = false;
+        }
+        function closeChangePasswordModal() { document.getElementById('changePasswordModal').classList.remove('open'); }
+        document.getElementById('changePasswordModal').addEventListener('click', function(e) { if (e.target === this) closeChangePasswordModal(); });
+        function toggleModalPw(id, btn) { const i = document.getElementById(id); const t = i.type==='text'; i.type=t?'password':'text'; btn.style.color=t?'':'#a78bfa'; }
+        function showCpwAlert(msg, type) {
+            const el = document.getElementById('cpwAlert'); el.className = 'modal-alert ' + type;
+            el.innerHTML = (type==='error' ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>') + msg;
+        }
+        async function submitChangePassword() {
+            const cur = document.getElementById('cpwCurrent').value.trim();
+            const np = document.getElementById('cpwNew').value;
+            const cf = document.getElementById('cpwConfirm').value;
+            if (!cur||!np||!cf){showCpwAlert('All fields are required.','error');return;}
+            if(np.length<6){showCpwAlert('New password must be at least 6 characters.','error');return;}
+            if(np!==cf){showCpwAlert('New passwords do not match.','error');return;}
+            const btn=document.getElementById('cpwSubmit'); btn.disabled=true; btn.textContent='Updating...';
+            try {
+                const res=await fetch('/api/users/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current_password:cur,new_password:np})});
+                const d=await res.json();
+                if(d.success){showCpwAlert('Password updated successfully!','success');setTimeout(closeChangePasswordModal,1500);}
+                else{showCpwAlert(d.error||'Failed to update password.','error');btn.disabled=false;btn.textContent='Update Password';}
+            }catch(e){showCpwAlert('Network error. Please try again.','error');btn.disabled=false;btn.textContent='Update Password';}
+        }
+    </script>
 </body>
 </html>

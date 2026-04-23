@@ -98,6 +98,26 @@ def edit_user(username):
     user_repo.update_user(user)
     return jsonify({'success': True})
 
+@dashboard_bp.route('/api/users/change-password', methods=['POST'])
+def change_own_password():
+    if not session.get('username'):
+        return jsonify({'error': 'Not authenticated'}), 401
+    data = request.json
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+    if not current_password or not new_password:
+        return jsonify({'error': 'All fields are required'}), 400
+    if len(new_password) < 6:
+        return jsonify({'error': 'New password must be at least 6 characters'}), 400
+    user = user_repo.get_by_username(session['username'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user.password_hash != current_password:
+        return jsonify({'error': 'Current password is incorrect'}), 403
+    user.password_hash = new_password
+    user_repo.update_user(user)
+    return jsonify({'success': True})
+
 @dashboard_bp.route('/api/users/<username>', methods=['DELETE'])
 @admin_required
 def delete_user(username):

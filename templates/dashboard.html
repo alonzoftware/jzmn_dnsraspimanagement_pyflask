@@ -31,21 +31,33 @@
             </svg>
         </button>
 
-                        <div class="nav-links">
-            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">Monitoring Panel</a>
-            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">Top Clients & Domains</a>
-            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link {% if request.endpoint == 'dashboard.check_internet' %}active{% endif %}">Internet Connectivity</a>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard.dashboard') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">Monitoring
+                Panel</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">Top Clients &
+                Domains</a>
+            <a href="{{ url_for('dashboard.check_internet') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.check_internet' %}active{% endif %}">Internet
+                Connectivity</a>
             {% if session.get('role') in ['admin', 'sadmin'] %}
-            <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link {% if request.endpoint == 'dashboard.dns_cache' %}active{% endif %}">DNS Cache</a>
-            <a href="{{ url_for('dashboard.response_policy') }}" class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">Response Policy</a>
+            <a href="{{ url_for('dashboard.dns_cache') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.dns_cache' %}active{% endif %}">DNS Cache</a>
+            <a href="{{ url_for('dashboard.response_policy') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">Response
+                Policy</a>
             {% endif %}
-            <a href="{{ url_for('dashboard.compare_performance') }}" class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">Compare Performance</a>
+            <a href="{{ url_for('dashboard.compare_performance') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">Compare
+                Performance</a>
             {% if session.get('role') in ['admin', 'sadmin'] %}
-            <a href="{{ url_for('dashboard.system_users') }}" class="nav-link {% if request.endpoint == 'dashboard.system_users' %}active{% endif %}">System Users</a>
+            <a href="{{ url_for('dashboard.system_users') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.system_users' %}active{% endif %}">System Users</a>
             {% endif %}
         </div>
 
-                        <div class="nav-actions">
+        <div class="nav-actions">
             <div class="user-info">
                 <div class="user-info-name">{{ session.get('username', 'Unknown') }}</div>
                 <div class="user-info-role">
@@ -55,7 +67,11 @@
                 </div>
             </div>
             <button class="btn-change-password" id="btnChangePassword" onclick="openChangePasswordModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
                 Change Password
             </button>
             <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
@@ -239,11 +255,19 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h3>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
                     Change Password
                 </h3>
                 <button class="modal-close" onclick="closeChangePasswordModal()" aria-label="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                 </button>
             </div>
             <div class="modal-alert" id="cpwAlert"></div>
@@ -251,8 +275,13 @@
                 <label for="cpwCurrent">Current Password</label>
                 <div class="modal-input-wrap">
                     <input type="password" id="cpwCurrent" placeholder="Enter current password">
-                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwCurrent', this)" aria-label="Toggle visibility">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwCurrent', this)"
+                        aria-label="Toggle visibility">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -260,8 +289,13 @@
                 <label for="cpwNew">New Password</label>
                 <div class="modal-input-wrap">
                     <input type="password" id="cpwNew" placeholder="Min. 6 characters">
-                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwNew', this)" aria-label="Toggle visibility">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwNew', this)"
+                        aria-label="Toggle visibility">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -269,14 +303,20 @@
                 <label for="cpwConfirm">Confirm New Password</label>
                 <div class="modal-input-wrap">
                     <input type="password" id="cpwConfirm" placeholder="Repeat new password">
-                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwConfirm', this)" aria-label="Toggle visibility">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <button type="button" class="modal-toggle-pw" onclick="toggleModalPw('cpwConfirm', this)"
+                        aria-label="Toggle visibility">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
                     </button>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-modal-cancel" onclick="closeChangePasswordModal()">Cancel</button>
-                <button class="btn-modal-submit" id="cpwSubmit" onclick="submitChangePassword()">Update Password</button>
+                <button class="btn-modal-submit" id="cpwSubmit" onclick="submitChangePassword()">Update
+                    Password</button>
             </div>
         </div>
     </div>
@@ -295,7 +335,7 @@
         function closeChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.remove('open');
         }
-        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+        document.getElementById('changePasswordModal').addEventListener('click', function (e) {
             if (e.target === this) closeChangePasswordModal();
         });
         function toggleModalPw(inputId, btn) {
@@ -314,7 +354,7 @@
         }
         async function submitChangePassword() {
             const current = document.getElementById('cpwCurrent').value.trim();
-            const newPw   = document.getElementById('cpwNew').value;
+            const newPw = document.getElementById('cpwNew').value;
             const confirm = document.getElementById('cpwConfirm').value;
             if (!current || !newPw || !confirm) { showCpwAlert('All fields are required.', 'error'); return; }
             if (newPw.length < 6) { showCpwAlert('New password must be at least 6 characters.', 'error'); return; }
@@ -337,7 +377,7 @@
                     btn.disabled = false;
                     btn.textContent = 'Update Password';
                 }
-            } catch(e) {
+            } catch (e) {
                 showCpwAlert('Network error. Please try again.', 'error');
                 btn.disabled = false;
                 btn.textContent = 'Update Password';

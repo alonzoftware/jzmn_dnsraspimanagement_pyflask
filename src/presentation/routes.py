@@ -1,6 +1,5 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask import Blueprint, request, render_template, redirect, url_for, flash, session
 from src.application.use_cases import AuthenticateUserUseCase
-
 auth_bp = Blueprint('auth', __name__)
 
 def register_auth_routes(authenticate_use_case: AuthenticateUserUseCase):
@@ -12,7 +11,9 @@ def register_auth_routes(authenticate_use_case: AuthenticateUserUseCase):
             
             user = authenticate_use_case.execute(username, password)
             if user:
-                # In a real app, you'd set a session here.
+                session['user_id'] = user.id
+                session['username'] = user.username
+                session['role'] = user.role
                 flash('Login successful!', 'success')
                 return redirect(url_for('dashboard.dashboard'))
             else:

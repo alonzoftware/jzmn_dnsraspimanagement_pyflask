@@ -10,6 +10,50 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 8px;
+            width: 400px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block; margin-bottom: 8px; color: var(--text-light);
+        }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px;
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+            color: white; border-radius: 4px;
+        }
+        .form-group select option {
+            background-color: #1e293b;
+            color: white;
+        }
+        .action-btns {
+            display: flex; gap: 8px;
+        }
+    </style>
 </head>
 
 <body class="dashboard-body">
@@ -30,26 +74,108 @@
         </button>
 
         <div class="nav-links">
-            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Monitoring Panel</a>
-            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link">Top Clients & Domains</a>
-            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link">Internet Connectivity</a>
-            <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link">DNS Cache</a>
-            <a href="{{ url_for('dashboard.response_policy') }}" class="nav-link">Response Policy</a>
-            <a href="{{ url_for('dashboard.compare_performance') }}" class="nav-link">Compare Performance</a>
-            <a href="{{ url_for('dashboard.system_users') }}" class="nav-link active">System Users</a>
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">Monitoring Panel</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">Top Clients & Domains</a>
+            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link {% if request.endpoint == 'dashboard.check_internet' %}active{% endif %}">Internet Connectivity</a>
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link {% if request.endpoint == 'dashboard.dns_cache' %}active{% endif %}">DNS Cache</a>
+            <a href="{{ url_for('dashboard.response_policy') }}" class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">Response Policy</a>
+            {% endif %}
+            <a href="{{ url_for('dashboard.compare_performance') }}" class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">Compare Performance</a>
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('dashboard.system_users') }}" class="nav-link {% if request.endpoint == 'dashboard.system_users' %}active{% endif %}">System Users</a>
+            {% endif %}
         </div>
 
         <div class="nav-actions">
             <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>
         </div>
     </nav>
+    
     <main class="dashboard-container">
         <div class="section-title">
             <h3>System Users</h3>
+            <div class="header-actions">
+                <button id="btnAddUser" class="btn-control" style="background-color: var(--primary); color: white; border: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Add User</span>
+                </button>
+            </div>
         </div>
-        <div class="info-panel">
-            <p>This page is currently empty. System users will be managed here in the future.</p>
+
+        <div class="chart-card wide" style="margin-top: 24px;">
+            <h4>User Management</h4>
+            <div class="table-container">
+                <table class="data-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Last Login</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>{{ u.username }}</td>
+                            <td>
+                                {% if u.role == 'admin' %}
+                                <span style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">Admin</span>
+                                {% else %}
+                                <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">User</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: var(--text-muted);">{{ u.last_login or 'Never' }}</td>
+                            <td style="text-align: right;">
+                                <div class="action-btns" style="justify-content: flex-end;">
+                                    <button class="btn-control btn-edit" data-username="{{ u.username }}" data-role="{{ u.role }}" style="padding: 4px 8px; font-size: 0.8rem;">Edit</button>
+                                    <button class="btn-control btn-delete" data-username="{{ u.username }}" style="padding: 4px 8px; font-size: 0.8rem; border-color: #ef4444; color: #ef4444;" {% if u.username == 'admin' %}disabled{% endif %}>Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
+
+    <!-- Modal Form -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add User</h3>
+                <button id="btnCloseModal" style="background: none; border: none; color: white; cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div id="modalError" style="color: #ef4444; margin-bottom: 16px; display: none;"></div>
+            <input type="hidden" id="editUsername">
+            <div class="form-group" id="groupUsername">
+                <label>Username</label>
+                <input type="text" id="inputUsername" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label id="lblPassword">Password</label>
+                <input type="password" id="inputPassword" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="selectRole">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div style="text-align: right; margin-top: 24px;">
+                <button id="btnSaveUser" class="btn-control" style="background-color: var(--primary); color: white; border: none; width: 100%;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/system_users.js') }}"></script>
 </body>
 </html>

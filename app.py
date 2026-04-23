@@ -19,9 +19,25 @@ if not user_repo.get_by_username('admin'):
         id=str(uuid.uuid4()),
         username='admin',
         password_hash='admin', # Note: In a real application, this should be hashed
-        is_active=True
+        is_active=True,
+        role='admin'
     )
     user_repo.add_user(admin_user)
+else:
+    admin_user = user_repo.get_by_username('admin')
+    if admin_user.role != 'admin':
+        admin_user.role = 'admin'
+        user_repo.update_user(admin_user)
+
+if not user_repo.get_by_username('user1'):
+    user1 = User(
+        id=str(uuid.uuid4()),
+        username='user1',
+        password_hash='user123',
+        is_active=True,
+        role='user'
+    )
+    user_repo.add_user(user1)
 
 auth_use_case = AuthenticateUserUseCase(user_repo)
 

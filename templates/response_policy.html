@@ -108,14 +108,18 @@
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
-        <div class="nav-links">
-            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Monitoring Panel</a>
-            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link">Top Clients & Domains</a>
-            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link">Internet Connectivity</a>
-            <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link">DNS Cache</a>
-            <a href="{{ url_for('dashboard.response_policy') }}" class="nav-link active">Response Policy</a>
-            <a href="{{ url_for('dashboard.compare_performance') }}" class="nav-link">Compare Performance</a>
-            <a href="{{ url_for('dashboard.system_users') }}" class="nav-link">System Users</a>
+                <div class="nav-links">
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">Monitoring Panel</a>
+            <a href="{{ url_for('dashboard.top_talkers') }}" class="nav-link {% if request.endpoint == 'dashboard.top_talkers' %}active{% endif %}">Top Clients & Domains</a>
+            <a href="{{ url_for('dashboard.check_internet') }}" class="nav-link {% if request.endpoint == 'dashboard.check_internet' %}active{% endif %}">Internet Connectivity</a>
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('dashboard.dns_cache') }}" class="nav-link {% if request.endpoint == 'dashboard.dns_cache' %}active{% endif %}">DNS Cache</a>
+            <a href="{{ url_for('dashboard.response_policy') }}" class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">Response Policy</a>
+            {% endif %}
+            <a href="{{ url_for('dashboard.compare_performance') }}" class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">Compare Performance</a>
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('dashboard.system_users') }}" class="nav-link {% if request.endpoint == 'dashboard.system_users' %}active{% endif %}">System Users</a>
+            {% endif %}
         </div>
         <div class="nav-actions">
             <a href="{{ url_for('auth.login') }}" class="btn-logout">Logout</a>

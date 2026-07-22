@@ -110,8 +110,9 @@
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Language selector in the sidebar */
-.lang-switch {
+/* Language & theme selectors in the sidebar */
+.lang-switch,
+.theme-switch {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -122,12 +123,14 @@
     color: var(--text-secondary);
 }
 
-.lang-switch svg {
+.lang-switch svg,
+.theme-switch svg {
     flex: 0 0 auto;
     color: #a78bfa;
 }
 
-.lang-switch .lang-select {
+.lang-switch .lang-select,
+.theme-switch .theme-select {
     flex: 1 1 auto;
     min-width: 0;
     background: transparent;
@@ -913,4 +916,105 @@
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+}
+
+/* ── Light theme surface overrides ────────────────────────
+ * Many surfaces use hardcoded dark/white-alpha colors rather than the CSS
+ * variables. In Light Mode we override those so nothing stays dark-on-light.
+ * theme.js stamps data-theme="light" on <html>.
+ */
+:root[data-theme="light"] .navbar {
+    background: rgba(255, 255, 255, 0.85);
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="light"] .nav-brand,
+:root[data-theme="light"] .nav-actions {
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+/* Language & theme select boxes get a visible light-gray border on light. */
+:root[data-theme="light"] .lang-switch,
+:root[data-theme="light"] .theme-switch {
+    background: rgba(15, 23, 42, 0.02);
+    border-color: #cbd5e1;
+}
+
+:root[data-theme="light"] .nav-logo {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="light"] .nav-link:hover {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+:root[data-theme="light"] .user-info-name {
+    color: var(--text-primary);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.2);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.3);
+}
+
+:root[data-theme="light"] .info-panel {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="light"] .live-indicator {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+:root[data-theme="light"] .control-select {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="light"] .control-select option {
+    background: #ffffff;
+}
+
+:root[data-theme="light"] .dnssec-trace {
+    background: rgba(15, 23, 42, 0.05);
+    color: #475569;
+}
+
+:root[data-theme="light"] .dnssec-rec {
+    border-bottom-color: rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme="light"] .data-table td {
+    border-bottom-color: rgba(15, 23, 42, 0.05);
+}
+
+:root[data-theme="light"] .btn-modal-cancel {
+    background: rgba(15, 23, 42, 0.05);
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme="light"] .modal-box {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(124, 58, 237, 0.25);
+}
+
+:root[data-theme="light"] .modal-input-wrap input {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(15, 23, 42, 0.15);
+}
+
+:root[data-theme="light"] .modal-close:hover {
+    background: rgba(15, 23, 42, 0.07);
+}
+
+@media (max-width: 900px) {
+    :root[data-theme="light"] .navbar {
+        background: rgba(255, 255, 255, 0.98);
+    }
+
+    :root[data-theme="light"] .burger-menu {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(15, 23, 42, 0.1);
+    }
 }

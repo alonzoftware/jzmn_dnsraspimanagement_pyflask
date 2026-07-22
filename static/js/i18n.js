@@ -27,9 +27,13 @@
             "Super Admin": "Súper Admin",
             "Admin": "Administrador",
             "User": "Usuario",
-            "Developed by: Jazmin Alejandra Coromi Cruz": "Desarrollado por: Jazmin Alejandra Coromi Cruz",
+            "Developed by: Jazmin Alejandra Coromi Cruz - Graduation Project - Electronic Engineering - Mayor de San Andres University": "Desarrollado por: Jazmin Alejandra Coromi Cruz - Proyecto de Grado - Ingeniería Electrónica - Universidad Mayor de San Andres",
             "Developed by:": "Desarrollado por:",
             "Language": "Idioma",
+            "Theme": "Tema",
+            "System Mode": "Modo del Sistema",
+            "Light Mode": "Modo Claro",
+            "Dark Mode": "Modo Oscuro",
 
             // ── Change Password modal ──
             "Current Password": "Contraseña Actual",
@@ -248,26 +252,45 @@
     var STORAGE_KEY = "dnsraspi_lang";
     var ATTRS = ["placeholder", "title", "aria-label"];
 
-    function getLang() {
-        try { return localStorage.getItem(STORAGE_KEY) || "en"; }
-        catch (e) { return "en"; }
-    }
-
     function setLang(lang) {
         try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
+    }
+
+    // Persist the language to the database when authenticated; no-op otherwise.
+    function persistLang(lang) {
+        if (!(window.__PREFS && window.__PREFS.auth)) return Promise.resolve();
+        return fetch("/api/users/preferences", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ language: lang })
+        }).catch(function () {});
     }
 
     function norm(s) {
         return s.replace(/\s+/g, " ").trim();
     }
 
-    // Allow ?lang=es to force + persist a language (deep-linking / testing).
+    // Resolve the active language. Priority: an explicit ?lang= override, then
+    // the logged-in user's saved value from the DB (window.__PREFS, set by the
+    // server), then the localStorage cache. The chosen value is cached locally.
+    var urlLang = null;
     try {
         var qp = new URLSearchParams(location.search).get("lang");
-        if (qp === "en" || qp === "es") setLang(qp);
+        if (qp === "en" || qp === "es") urlLang = qp;
     } catch (e) {}
 
-    var lang = getLang();
+    var lang;
+    if (urlLang) {
+        lang = urlLang;
+        persistLang(lang);   // save an explicit override to the DB if logged in
+    } else if (window.__PREFS && window.__PREFS.auth && window.__PREFS.lang) {
+        lang = window.__PREFS.lang;
+    } else {
+        try { lang = localStorage.getItem(STORAGE_KEY) || "en"; }
+        catch (e) { lang = "en"; }
+    }
+    setLang(lang);
+
     var table = DICT[lang] || null;
 
     function lookup(text) {
@@ -354,8 +377,10 @@
         if (!sel) return;
         sel.value = lang;
         sel.addEventListener("change", function () {
-            setLang(sel.value);
-            location.reload();
+            var val = sel.value;
+            setLang(val);
+            // Save to the DB (if logged in), then reload to apply the language.
+            persistLang(val).finally(function () { location.reload(); });
         });
     }
 

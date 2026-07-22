@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme-aware chart colors: read the active theme's CSS variables so
+    // chart text stays readable in both dark and light mode (theme.js has
+    // already stamped data-theme on <html> before this runs).
+    const _rs = getComputedStyle(document.documentElement);
+    const C_TEXT = _rs.getPropertyValue('--text-primary').trim() || '#f8fafc';
+    const C_MUTED = _rs.getPropertyValue('--text-secondary').trim() || '#94a3b8';
+    const C_GRID = document.documentElement.getAttribute('data-theme') === 'light'
+        ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+
     // Chart configurations
     const qpsCtx = document.getElementById('qpsChart').getContext('2d');
     const typesCtx = document.getElementById('typesChart').getContext('2d');
@@ -27,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
-                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                y: { beginAtZero: true, grid: { color: C_GRID }, ticks: { color: C_MUTED } },
+                x: { grid: { display: false }, ticks: { color: C_MUTED } }
             },
             plugins: { legend: { display: false } }
         }
@@ -51,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             maintainAspectRatio: false,
             cutout: '70%',
             plugins: {
-                legend: { position: 'right', labels: { color: '#f8fafc', usePointStyle: true, boxWidth: 8 } }
+                legend: { position: 'right', labels: { color: C_TEXT, usePointStyle: true, boxWidth: 8 } }
             }
         }
     });

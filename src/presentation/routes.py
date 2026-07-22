@@ -14,6 +14,8 @@ def register_auth_routes(authenticate_use_case: AuthenticateUserUseCase):
                 session['user_id'] = user.id
                 session['username'] = user.username
                 session['role'] = user.role
+                session['language'] = user.language
+                session['theme'] = user.theme
                 flash('Login successful!', 'success')
                 return redirect(url_for('dashboard.dashboard'))
             else:

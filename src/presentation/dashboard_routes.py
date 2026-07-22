@@ -122,6 +122,30 @@ def change_own_password():
     user_repo.update_user(user)
     return jsonify({'success': True})
 
+@dashboard_bp.route('/api/users/preferences', methods=['POST'])
+def save_preferences():
+    """Persist the logged-in user's language/theme choice to the database."""
+    if not session.get('username'):
+        return jsonify({'error': 'Not authenticated'}), 401
+    data = request.json or {}
+    user = user_repo.get_by_username(session['username'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    if 'language' in data:
+        if data['language'] not in ('en', 'es'):
+            return jsonify({'error': 'Invalid language'}), 400
+        user.language = data['language']
+        session['language'] = user.language
+    if 'theme' in data:
+        if data['theme'] not in ('system', 'light', 'dark'):
+            return jsonify({'error': 'Invalid theme'}), 400
+        user.theme = data['theme']
+        session['theme'] = user.theme
+
+    user_repo.update_user(user)
+    return jsonify({'success': True, 'language': user.language, 'theme': user.theme})
+
 @dashboard_bp.route('/api/users/<username>', methods=['DELETE'])
 @admin_required
 def delete_user(username):

@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let raceChart;
 
     function initChart() {
+        // Theme-aware chart colors (see dashboard.js).
+        const _rs = getComputedStyle(document.documentElement);
+        const C_TEXT = _rs.getPropertyValue('--text-primary').trim() || '#f8fafc';
+        const C_MUTED = _rs.getPropertyValue('--text-secondary').trim() || '#94a3b8';
+        const C_GRID = document.documentElement.getAttribute('data-theme') === 'light'
+            ? 'rgba(15, 23, 42, 0.10)' : '#334155';
+
         const ctx = document.getElementById('raceChart').getContext('2d');
         raceChart = new Chart(ctx, {
             type: 'bar',
@@ -41,19 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         title: {
                             display: true,
                             text: 'Response Time (ms)',
-                            color: '#94a3b8'
+                            color: C_MUTED
                         },
-                        ticks: { color: '#94a3b8' },
-                        grid: { color: '#334155' }
+                        ticks: { color: C_MUTED },
+                        grid: { color: C_GRID }
                     },
                     x: {
-                        ticks: { color: '#94a3b8' },
+                        ticks: { color: C_MUTED },
                         grid: { display: false }
                     }
                 },
                 plugins: {
                     legend: {
-                        labels: { color: '#f8fafc' }
+                        labels: { color: C_TEXT }
                     }
                 }
             }

@@ -16,6 +16,29 @@
     --success-text: #86efac;
 }
 
+/* ── Light theme ──────────────────────────────────────────
+ * Dark is the source design (the bare :root above). Selecting Light Mode
+ * (or System Mode on a light OS) stamps data-theme="light" on <html> and
+ * these variables override the palette. theme.js manages the attribute.
+ */
+:root[data-theme="light"] {
+    --bg-color: #f1f5f9;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --card-border: rgba(15, 23, 42, 0.12);
+    --primary-color: #7c3aed;
+    --primary-hover: #6d28d9;
+    --secondary-color: #0891b2;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-border: rgba(15, 23, 42, 0.15);
+    --input-focus: #7c3aed;
+    --error-bg: rgba(239, 68, 68, 0.1);
+    --error-text: #b91c1c;
+    --success-bg: rgba(34, 197, 94, 0.12);
+    --success-text: #15803d;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -301,6 +324,29 @@ body {
 .lang-select option {
     background: #0f172a;
     color: #f8fafc;
+}
+
+:root[data-theme="light"] .lang-select {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.15);
+}
+
+:root[data-theme="light"] .lang-select option {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+/* Login title uses a white gradient (invisible on a light bg) — darken it. */
+:root[data-theme="light"] .logo-area h1 {
+    background: linear-gradient(to right, #0f172a, #475569);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* "Developed by" caption is white; use readable dark text on light. */
+:root[data-theme="light"] .developer-info {
+    color: #0f172a;
 }
 
 .login-lang-switch {

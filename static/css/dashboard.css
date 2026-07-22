@@ -110,6 +110,31 @@
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Language selector in the sidebar */
+.lang-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+}
+
+.lang-switch svg {
+    flex: 0 0 auto;
+    color: #a78bfa;
+}
+
+.lang-switch .lang-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 2px 4px;
+}
+
 .user-info {
     color: var(--text-secondary);
     font-size: 0.9rem;

@@ -1,3 +1,5 @@
+axsbolivia.com
+nic.bo
 google.com
 youtube.com
 facebook.com
@@ -6,8 +8,6 @@ wikipedia.org
 yahoo.com
 twitter.com
 instagram.com
-xvideos.com
-xhamster.com
 amazon.com
 yandex.ru
 xnxx.com
@@ -47,3 +47,5 @@ bbc.com
 cnn.com
 paypal.com
 nytimes.com
+xvideos.com
+xhamster.com

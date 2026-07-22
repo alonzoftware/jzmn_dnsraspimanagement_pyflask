@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from src.application.services import SystemHealthService, DnsMetricsService, DnsCacheService, ResponsePolicyService
+from src.application.services import SystemHealthService, DnsMetricsService, DnsCacheService, ResponsePolicyService, DnssecValidationService
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -7,6 +7,7 @@ health_service = SystemHealthService()
 dns_service = DnsMetricsService()
 dns_cache_service = DnsCacheService()
 rpz_service = ResponsePolicyService()
+dnssec_service = DnssecValidationService()
 
 @api_bp.route('/health')
 def get_health():
@@ -90,3 +91,10 @@ def handle_compare_domains():
 @api_bp.route('/compare-performance/benchmark', methods=['GET'])
 def benchmark_resolvers():
     return jsonify(compare_service.benchmark())
+
+@api_bp.route('/dnssec/validate', methods=['GET'])
+def dnssec_validate():
+    domain = request.args.get('domain', '').strip()
+    if not domain:
+        return jsonify({"error": "No domain provided."}), 400
+    return jsonify(dnssec_service.validate(domain))

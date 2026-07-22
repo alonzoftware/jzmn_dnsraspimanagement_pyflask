@@ -43,6 +43,10 @@ def response_policy():
 def compare_performance():
     return render_template('compare_performance.html')
 
+@dashboard_bp.route('/dnssec')
+def dnssec():
+    return render_template('dnssec.html')
+
 @dashboard_bp.route('/system-users')
 @admin_required
 def system_users():

@@ -117,6 +117,8 @@
                 class="nav-link {% if request.endpoint == 'dashboard.response_policy' %}active{% endif %}">Response
                 Policy</a>
             {% endif %}
+            <a href="{{ url_for('dashboard.dnssec') }}"
+                class="nav-link {% if request.endpoint == 'dashboard.dnssec' %}active{% endif %}">DNSSEC Explorer</a>
             <a href="{{ url_for('dashboard.compare_performance') }}"
                 class="nav-link {% if request.endpoint == 'dashboard.compare_performance' %}active{% endif %}">Compare
                 Performance</a>

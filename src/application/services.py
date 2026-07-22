@@ -949,3 +949,218 @@ class ComparePerformanceService:
             })
 
         return {"results": results, "test_domains": test_domains}
+
+class DnssecValidationService:
+    """Builds and inspects the DNSSEC chain of trust for a domain.
+
+    Uses low-level dnspython queries (DO bit set) against a validating
+    resolver to collect DNSKEY/DS/RRSIG/A/NSEC records, and wraps BIND's
+    ``delv`` utility to obtain an authoritative validation verdict + trace.
+    """
+
+    def __init__(self):
+        # Prefer the local BIND validating resolver, then public validators.
+        self.resolvers = ['127.0.0.1', '1.1.1.1', '8.8.8.8']
+
+    def _query(self, qname, rdtype):
+        import dns.message, dns.query, dns.flags
+        q = dns.message.make_query(qname, rdtype, want_dnssec=True)
+        last_exc = None
+        for ip in self.resolvers:
+            try:
+                resp = dns.query.udp(q, ip, timeout=4)
+                if resp.flags & dns.flags.TC:
+                    resp = dns.query.tcp(q, ip, timeout=4)
+                return resp
+            except Exception as e:
+                last_exc = e
+                try:
+                    return dns.query.tcp(q, ip, timeout=4)
+                except Exception as e2:
+                    last_exc = e2
+                    continue
+        raise last_exc if last_exc else Exception("No resolver reachable")
+
+    def _rrsets(self, message, rdtype_name):
+        import dns.rdatatype
+        out = []
+        for section in (message.answer, message.authority):
+            for rrset in section:
+                if dns.rdatatype.to_text(rrset.rdtype) == rdtype_name:
+                    for rdata in rrset:
+                        out.append(rdata.to_text())
+        return out
+
+    def _safe_rr(self, name, rtype):
+        try:
+            return self._rrsets(self._query(name, rtype), rtype)
+        except Exception:
+            return []
+
+    def _parse_dnskeys(self, texts):
+        keys = []
+        for t in texts:
+            parts = t.split()
+            if len(parts) >= 4:
+                flags = parts[0]
+                role = "KSK" if flags == "257" else ("ZSK" if flags == "256" else "Other")
+                pub = parts[3]
+                keys.append({
+                    "flags": flags,
+                    "role": role,
+                    "algorithm": parts[2],
+                    "public_key": (pub[:40] + "…") if len(pub) > 40 else pub
+                })
+        return keys
+
+    def _parse_ds(self, texts):
+        ds = []
+        digest_names = {"1": "SHA-1", "2": "SHA-256", "4": "SHA-384"}
+        for t in texts:
+            parts = t.split()
+            if len(parts) >= 4:
+                digest = parts[3]
+                ds.append({
+                    "key_tag": parts[0],
+                    "algorithm": parts[1],
+                    "digest_type": digest_names.get(parts[2], parts[2]),
+                    "digest": (digest[:32] + "…") if len(digest) > 32 else digest
+                })
+        return ds
+
+    def _fmt_time(self, s):
+        # RRSIG timestamps are YYYYMMDDHHMMSS
+        if len(s) == 14 and s.isdigit():
+            return f"{s[0:4]}-{s[4:6]}-{s[6:8]} {s[8:10]}:{s[10:12]}:{s[12:14]} UTC"
+        return s
+
+    def _parse_rrsig(self, texts):
+        sigs = []
+        for t in texts:
+            parts = t.split()
+            # type_covered algo labels orig_ttl expiration inception key_tag signer signature...
+            if len(parts) >= 9:
+                sigs.append({
+                    "type_covered": parts[0],
+                    "algorithm": parts[1],
+                    "expiration": self._fmt_time(parts[4]),
+                    "inception": self._fmt_time(parts[5]),
+                    "key_tag": parts[6],
+                    "signer": parts[7].rstrip('.')
+                })
+        return sigs
+
+    def _delv_trace(self, domain):
+        try:
+            res = subprocess.run(
+                ['delv', '+rtrace', '+vtrace', domain, 'A'],
+                capture_output=True, text=True, timeout=8
+            )
+            out = (res.stdout or "") + (res.stderr or "")
+            return out.strip() or "delv returned no output."
+        except FileNotFoundError:
+            return "delv utility not available on this host."
+        except Exception as e:
+            return f"delv error: {e}"
+
+    def validate(self, domain):
+        import dns.flags, dns.rcode
+        domain = (domain or "").strip().rstrip('.').lower()
+        if not domain or ' ' in domain or '.' not in domain:
+            return {"error": "Please enter a valid domain (e.g. example.com)."}
+
+        labels = domain.split('.')
+        tld = labels[-1]
+
+        # Core A-record query drives the AD-flag / rcode verdict.
+        try:
+            a_resp = self._query(domain, 'A')
+        except Exception as e:
+            return {"error": f"DNS query failed: {e}"}
+
+        ad = bool(a_resp.flags & dns.flags.AD)
+        servfail = (a_resp.rcode() == dns.rcode.SERVFAIL)
+
+        a_records = self._rrsets(a_resp, 'A')
+        rrsig_records = self._rrsets(a_resp, 'RRSIG')
+        nsec_records = self._rrsets(a_resp, 'NSEC') + self._rrsets(a_resp, 'NSEC3')
+
+        # Authoritative verdict + trace from BIND's own validator.
+        trace = self._delv_trace(domain)
+        trace_low = trace.lower()
+        delv_secure = "fully validated" in trace_low
+        delv_unsigned = "unsigned answer" in trace_low
+        delv_bogus = ("validation failure" in trace_low) or ("no valid signature" in trace_low) \
+            or ("bogus" in trace_low)
+
+        # delv is BIND's own validator, so trust its verdict first. A bare
+        # SERVFAIL is only treated as BOGUS when delv did not confirm the
+        # answer is merely unsigned (avoids false BOGUS on transient failures).
+        if delv_secure or ad:
+            overall = "SECURE"
+        elif delv_bogus or (servfail and not delv_unsigned):
+            overall = "BOGUS"
+        else:
+            overall = "INSECURE"
+
+        root_dnskey = self._safe_rr('.', 'DNSKEY')
+        tld_ds = self._safe_rr(tld, 'DS')
+        tld_dnskey = self._safe_rr(tld, 'DNSKEY')
+        dom_ds = self._safe_rr(domain, 'DS')
+        dom_dnskey = self._safe_rr(domain, 'DNSKEY')
+
+        def level_status(signed):
+            if overall == "BOGUS":
+                return "BOGUS"
+            return "SECURE" if signed else "INSECURE"
+
+        chain = [
+            {
+                "level": "Root Zone (.)",
+                "zone": ".",
+                "status": "SECURE" if root_dnskey else "INSECURE",
+                "detail": "Root DNSKEY verified against the built-in Trust Anchor.",
+                "records": {"DNSKEY": self._parse_dnskeys(root_dnskey)}
+            },
+            {
+                "level": f"TLD Zone (.{tld})",
+                "zone": tld,
+                "status": level_status(bool(tld_ds)),
+                "detail": (f"Root's DS record delegates to .{tld}'s KSK."
+                           if tld_ds else f".{tld} has no DS record at the root."),
+                "records": {"DS": self._parse_ds(tld_ds), "DNSKEY": self._parse_dnskeys(tld_dnskey)}
+            },
+            {
+                "level": f"Domain Zone ({domain})",
+                "zone": domain,
+                "status": level_status(bool(dom_ds)),
+                "detail": (f".{tld}'s DS record delegates to {domain}'s KSK."
+                           if dom_ds else f"{domain} is unsigned (no DS record at the parent)."),
+                "records": {"DS": self._parse_ds(dom_ds), "DNSKEY": self._parse_dnskeys(dom_dnskey)}
+            },
+            {
+                "level": "Resource Record Set (RRset)",
+                "zone": domain,
+                "status": ("BOGUS" if overall == "BOGUS"
+                           else ("SECURE" if (ad and rrsig_records) else "INSECURE")),
+                "detail": ("A record signed by the Zone Signing Key (ZSK)."
+                           if rrsig_records else "A record has no RRSIG signature."),
+                "records": {"A": a_records, "RRSIG": self._parse_rrsig(rrsig_records)}
+            }
+        ]
+
+        return {
+            "domain": domain,
+            "overall_status": overall,
+            "ad_flag": ad,
+            "servfail": servfail,
+            "chain": chain,
+            "raw_records": {
+                "DNSKEY": self._parse_dnskeys(dom_dnskey),
+                "DS": self._parse_ds(dom_ds),
+                "RRSIG": self._parse_rrsig(rrsig_records),
+                "A": a_records,
+                "NSEC": nsec_records
+            },
+            "raw_trace": trace
+        }

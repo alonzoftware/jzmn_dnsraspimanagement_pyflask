@@ -484,6 +484,127 @@
     color: #86efac;
 }
 
+.badge-yellow {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+}
+
+/* ── DNSSEC Validation Explorer ─────────────────────────── */
+.dnssec-chain {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+.dnssec-level {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-left: 4px solid var(--text-secondary);
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+.dnssec-level.dnssec-secure {
+    border-left-color: #22c55e;
+}
+
+.dnssec-level.dnssec-insecure {
+    border-left-color: #f59e0b;
+}
+
+.dnssec-level.dnssec-bogus {
+    border-left-color: #ef4444;
+}
+
+.dnssec-level-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.dnssec-level-head h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.dnssec-detail {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 6px 0 10px;
+}
+
+.dnssec-connector {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px 0;
+}
+
+.dnssec-reclist {
+    margin-top: 8px;
+}
+
+.dnssec-reclabel {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.dnssec-rec {
+    padding: 4px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dnssec-rec:last-child {
+    border-bottom: none;
+}
+
+.dnssec-overall {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.dnssec-flags {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.dnssec-empty {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-style: italic;
+}
+
+.dnssec-trace {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 360px;
+    overflow-y: auto;
+    margin: 0;
+}
+
 .burger-menu {
     display: none;
     background: none;

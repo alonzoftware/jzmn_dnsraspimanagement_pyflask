@@ -21,3 +21,8 @@ speedtest-cli       # For speed tests
 
 pip install flask gunicorn flask-cors dnspython psutil ping3 requests speedtest-cli
 venv/bin/pip install psutil dnspython flask-cors ping3 requests speedtest-cli
+
+# DNSSEC Validation Explorer example of domain names with different DNSSEC states
+cloudeflare.com SECURE
+amazon.com INSECURE
+dnssec-failed.org BOGUS 
